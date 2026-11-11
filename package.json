@@ -1,0 +1,15 @@
+{
+  "name": "lock-in",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lock In: discipline app with ranks, quests, avatar cosmetics",
+  "scripts": {
+    "sync": "cap sync ios",
+    "open": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  }
+}

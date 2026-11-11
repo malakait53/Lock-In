@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Lock In">
+<meta name="theme-color" content="#000000">
+<title>Lock In</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#000;--fg:#fff;--g1:#0d0d0d;--g2:#1a1a1a;--g3:#2e2e2e;--g4:#6f6f6f;--g5:#a8a8a8}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding-top:env(safe-area-inset-top)}
+#app{max-width:520px;margin:0 auto;padding:14px 14px calc(92px + env(safe-area-inset-bottom))}
+h1,h2,h3{margin:0;letter-spacing:-.01em}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--g5);margin:22px 4px 10px;font-weight:600}
+.card{background:var(--g1);border:1px solid var(--g3);border-radius:18px;padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.muted{color:var(--g5);font-size:13px}
+.tiny{color:var(--g4);font-size:11px}
+.big{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.bar{height:8px;background:var(--g3);border-radius:99px;overflow:hidden;margin:8px 0 4px}
+.bar>i{display:block;height:100%;background:#fff;border-radius:99px;transition:width .5s}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid var(--g3);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:600}
+button,.btn{font:inherit;color:var(--bg);background:var(--fg);border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+button.ghost{background:transparent;color:var(--fg);border:1px solid var(--g4)}
+button.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+button:disabled{opacity:.35}
+button.full{width:100%}
+input[type=text],input[type=date],input[type=url],input[type=time]{width:100%;background:#000;color:#fff;border:1px solid var(--g3);border-radius:12px;padding:12px;font:inherit;font-size:16px;color-scheme:dark}
+.q{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--g2)}
+.q:last-child{border-bottom:0}
+.ck{width:26px;height:26px;border-radius:8px;border:2px solid var(--g4);flex:none;display:grid;place-items:center;font-weight:900;font-size:15px;background:transparent;color:#000;padding:0}
+.done .ck{background:#fff;border-color:#fff}
+.done .qt{color:var(--g4);text-decoration:line-through}
+.qt{font-weight:600;font-size:15px}
+.tag{font-size:10px;font-weight:800;letter-spacing:.08em;border:1px solid var(--g4);color:var(--g5);border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+.tag.inv{background:#fff;color:#000;border-color:#fff}
+.pts{font-size:12px;color:var(--g5);white-space:nowrap}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(0,0,0,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--g3);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav .in{display:flex;width:100%;max-width:520px}
+nav button{flex:1;min-width:0;background:transparent;color:var(--g4);border-radius:0;padding:10px 0 9px;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase}
+nav button.on{color:#fff}
+nav button svg{display:block;margin:0 auto 3px}
+.lb{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:12px}
+.lb.me{background:#fff;color:#000}
+.lb.me .muted,.lb.me .tiny{color:#444}
+.pos{width:26px;text-align:center;font-weight:800;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.item{border:1px solid var(--g3);border-radius:14px;padding:10px 6px;text-align:center;font-size:12px;background:var(--g1);color:#fff;font-weight:600}
+.item.sel{border-color:#fff;box-shadow:0 0 0 1px #fff}
+.item.lock{color:var(--g4)}
+.slots{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
+.slots button{background:transparent;color:var(--g5);border:1px solid var(--g3);padding:7px 12px;font-size:12px;border-radius:99px;white-space:nowrap}
+.slots button.on{background:#fff;color:#000;border-color:#fff}
+#toast{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-120px);background:#fff;color:#000;font-weight:700;font-size:14px;padding:11px 16px;border-radius:14px;z-index:20;transition:transform .35s;max-width:92%;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:30;display:none;place-items:center;text-align:center;padding:30px}
+#ov.show{display:grid}
+.timer{font-size:56px;font-weight:800;letter-spacing:-.03em;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
+.seg{display:flex;gap:8px}.seg button{flex:1}
+label.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}
+label.sw input{width:22px;height:22px;accent-color:#fff}
+.t-sub{font-size:12px;color:var(--g5);margin-top:3px}
+input[type=number],select{width:100%;background:#000;color:#fff;border:1px solid var(--g3);border-radius:12px;padding:12px;font:inherit;font-size:16px;color-scheme:dark}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.setrow{display:grid;grid-template-columns:34px minmax(0,1fr) minmax(0,1fr) 36px 36px;gap:6px;align-items:center;margin-bottom:6px}
+.setrow.b{grid-template-columns:34px minmax(0,1fr) 36px 36px}
+.setrow input{text-align:center;padding:10px 4px;min-width:0}
+.setrow .ck{width:34px;height:34px;justify-self:center}
+.setrow.done input{background:#fff;color:#000;border-color:#fff}
+.setrow.done .ck{background:#fff;border-color:#fff}
+.setrow .sn{text-align:center;font-weight:700;color:var(--g5);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.setrow.head{margin-bottom:2px}
+.setrow .c{text-align:center}
+.setrow .ghost.sm{padding:6px 0;width:34px;justify-self:center}
+.item{font-family:inherit}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+<div id="ov"></div>
+<nav><div class="in" id="nav"></div></nav>
+<input type="file" id="icsFile" accept=".ics,text/calendar" hidden>
+<script>
+'use strict';
+/* ============ helpers ============ */
+const KEY='lockin.v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+const today=()=>fmt(new Date());
+function pd(s){const a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])}
+function addDays(s,n){const d=pd(s);d.setDate(d.getDate()+n);return fmt(d)}
+function diffDays(a,b){const p=s=>{const x=s.split('-').map(Number);return Date.UTC(x[0],x[1]-1,x[2])};return Math.round((p(b)-p(a))/864e5)}
+function hash(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let h=hash(seed)||1;return()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return(h>>>0)/4294967296}}
+const ROM=['III','II','I'];
+
+/* ============ ranks ============ */
+const RANKS=[
+ {n:'Iron',min:0},{n:'Bronze',min:300},{n:'Silver',min:800},{n:'Gold',min:1600},{n:'Platinum',min:2800},
+ {n:'Diamond',min:4500},{n:'Master',min:7000},{n:'Grandmaster',min:10000},{n:'Angelic',min:14000},{n:'Enlightened',min:20000}];
+function rankInfo(rp){
+ let t=0;for(let i=0;i<RANKS.length;i++)if(rp>=RANKS[i].min)t=i;
+ if(t===RANKS.length-1)return{t,name:RANKS[t].n,div:'',label:RANKS[t].n,pct:100,toNext:0,nextLabel:'MAX'};
+ const lo=RANKS[t].min,hi=RANKS[t+1].min,w=(hi-lo)/3;
+ const k=Math.min(2,Math.floor((rp-lo)/w));
+ const step=Math.round(lo+(k+1)*w);
+ const stepLo=Math.round(lo+k*w);
+ return{t,name:RANKS[t].n,div:ROM[k],label:RANKS[t].n+' '+ROM[k],pct:Math.max(0,Math.min(100,(rp-stepLo)/(step-stepLo)*100)),
+  toNext:step-rp,nextLabel:k<2?RANKS[t].n+' '+ROM[k+1]:RANKS[t+1].n+' III'};
+}
+function badge(t,sz){
+ sz=sz||44;const c=22,r=17;let g='';
+ if(t<=7){
+  const poly=(rad,fill,stroke,sw)=>{const n=t+3;const pts=[];for(let i=0;i<n;i++){const a=-Math.PI/2+i*2*Math.PI/n;pts.push((c+rad*Math.cos(a)).toFixed(1)+','+(c+rad*Math.sin(a)).toFixed(1))}
+   return '<polygon points="'+pts.join(' ')+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linejoin="round"/>'};
+  g=poly(r,t>=5?'#fff':'#000','#fff',1.6+t*.18)+poly(r*.55,t>=5?'#000':'#fff','none',0);
+ }else if(t===8){
+  g='<ellipse cx="22" cy="6" rx="9" ry="2.6" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M5 18Q-1 24 6 33M39 18Q45 24 38 33" stroke="#fff" fill="none" stroke-width="1.6"/><circle cx="22" cy="26" r="12" fill="#000" stroke="#fff" stroke-width="2.4"/><circle cx="22" cy="26" r="5" fill="#fff"/>';
+ }else{
+  let rays='';for(let i=0;i<12;i++){const a=i*Math.PI/6;rays+='<line x1="'+(22+14*Math.cos(a)).toFixed(1)+'" y1="'+(22+14*Math.sin(a)).toFixed(1)+'" x2="'+(22+21*Math.cos(a)).toFixed(1)+'" y2="'+(22+21*Math.sin(a)).toFixed(1)+'" stroke="#fff" stroke-width="2"/>'}
+  g=rays+'<circle cx="22" cy="22" r="12" fill="#fff"/><circle cx="22" cy="22" r="5" fill="#000"/>';
+ }
+ return '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 44 44" style="flex:none">'+g+'</svg>';
+}
+
+/* ============ cosmetics ============ */
+/* ===== avatar part A: palette, catalog, scenes, auras, face, hair, outfits, assembly ===== */
+function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const t=f<0?0:255,p=Math.abs(f);r=Math.round(r+(t-r)*p);g=Math.round(g+(t-g)*p);b=Math.round(b+(t-b)*p);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+function R(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+const SK=['#f1f1f1','#c8c8c8','#8c8c8c','#4d4d4d'];
+const CAT={
+ skin:[['Pearl',0,0],['Ash',0,0],['Slate',0,0],['Onyx',0,0]],
+ hair:[['Bald',0,0],['Short',0,0],['Buzz',40,0],['Spiky',60,0],['Long',80,0],['Bun',80,1],['Mohawk',150,2],['Afro',90,0],['Ponytail',90,1],['Braids',120,2],['Slick Back',70,1],['Pompadour',150,3],['Dreads',170,3]],
+ eyes:[['Open',0,0],['Focused',50,0],['Calm',80,1],['Locked-in',120,3],['Void',400,6],['Wink',40,0],['Wide',60,0]],
+ out:[['Tee',0,0],['Hoodie',70,0],['Locked-In Hoodie',120,1],['Suit',150,2],['Armor',250,3],['Robe',350,5],['Tank',40,0],['Varsity Jacket',160,2],['Camo Fatigues',130,1],['Martial Arts Gi',150,2],['Trench Coat',220,3],['Tuxedo',300,4],['Samurai Plate',420,5],['Angelic Vestments',900,8]],
+ head:[['None',0,0],['Cap',50,0],['Beanie',50,0],['Headphones',60,0],['Bandana',70,1],['Top Hat',250,3],['Crown',400,4],['Laurel Wreath',450,5],['Horns',400,6],['Spiked Crown',700,7],['Crown of Light',1200,9],['Combat Helmet',120,1],['Beret',80,1],['Hood',100,2],['Cowboy Hat',140,2],['Viking Helm',220,3],['Wizard Hat',300,4],['Antlers',350,4],['Cat Ears',90,0],['Sweatband',30,0],['Flame Crown',650,6],['Kabuto',380,5]],
+ acc:[['None',0,0],['Glasses',50,0],['Headband',40,0],['Shades',90,2],['Halo',500,8],['Wings',700,8],['Third Eye',1000,9],['Monocle',150,2],['Dog Tags',80,0],['Scarf',90,1],['Ninja Mask',180,2],['Medal',200,3],['Eye Patch',60,0],['Aviators',110,1],['Goggles',100,1],['VR Visor',260,4],['Bow Tie',70,1],['Pendant',90,0],['Face Paint',60,1],['Earring',60,0],['Stubble',40,0],['Goatee',50,0],['Mustache',50,0],['Full Beard',90,1],['Scar',30,0]],
+ hand:[['None',0,0],['Pickaxe',120,1],['Dumbbell',80,0],['Sword',200,2],['Shield',200,2],['Torch',100,1],['Staff',350,5],['Diamond Pickaxe',600,5],['Scythe',800,7],['Katana',260,3],['Axe',180,2],['War Hammer',320,4],['Bow',250,3],['Spear',240,3],['Trident',420,5],['Lantern',120,2],['Book',60,0],['Coffee',40,0],['Kettlebell',90,0],['Trophy',400,4],['Wand',220,3]],
+ back:[['None',0,0],['Cape',200,2],['Backpack',60,0],['Banner',150,3],['Twin Swords',300,4],['Jetpack',500,5],['Quiver',150,2],['Guitar',120,1],['Greatsword',350,4],['Dark Wings',600,6],['Orbit Rings',500,7]],
+ pet:[['None',0,0],['Cat',150,1],['Dog',150,1],['Raven',220,3],['Owl',220,3],['Dragon',700,7],['Phoenix',1500,9]],
+ aur:[['None',0,0],['Pulse',100,1],['Flame',200,3],['Lightning',300,5],['Radiance',800,9],['Sparkles',80,1],['Smoke',150,2],['Shockwave',260,4],['Eclipse',550,7]],
+ bg:[['Plain',0,0],['Circle',30,0],['Grid',60,0],['Rays',120,2],['Stars',200,4],['Gradient',250,6],['Skyline',100,1],['Mountains',120,2],['Gym',80,0],['Moon',160,3],['Cathedral',300,5],['Heaven',450,8]]
+};
+const SLOTS=[['skin','Skin'],['hair','Hair'],['eyes','Eyes'],['out','Outfit'],['head','Head'],['acc','Face'],['hand','Hand'],['back','Back'],['pet','Pet'],['aur','Aura'],['bg','Scene']];
+const ART={bg:{},aur:{},back:{},out:{},hairB:{},hairF:{},eyes:{},head:{},acc:{},hand:{},pet:{}};
+const BODY='M10 140Q12 102 40 94L52 90Q60 96 68 90L80 94Q108 102 110 140Z';
+const star4=(x,y,r,o)=>`<path d="M${x} ${y-r}Q${x+r*.15} ${y-r*.15} ${x+r} ${y}Q${x+r*.15} ${y+r*.15} ${x} ${y+r}Q${x-r*.15} ${y+r*.15} ${x-r} ${y}Q${x-r*.15} ${y-r*.15} ${x} ${y-r}Z" fill="#fff" fill-opacity="${o||.9}"/>`;
+
+function defs(c){const u=c.u;
+ return `<defs>
+<radialGradient id="${u}bg" cx=".5" cy=".36" r=".85"><stop offset="0" stop-color="#454545"/><stop offset="1" stop-color="#0a0a0a"/></radialGradient>
+<linearGradient id="${u}g5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a8a8a"/><stop offset="1" stop-color="#050505"/></linearGradient>
+<linearGradient id="${u}sk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c.skl}"/><stop offset=".55" stop-color="${c.sk}"/><stop offset="1" stop-color="${c.skd}"/></linearGradient>
+<linearGradient id="${u}hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4c4c4c"/><stop offset=".5" stop-color="#1c1c1c"/><stop offset="1" stop-color="#090909"/></linearGradient>
+<linearGradient id="${u}mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#cdcdcd"/><stop offset="1" stop-color="#777"/></linearGradient>
+<linearGradient id="${u}dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#666"/><stop offset="1" stop-color="#0d0d0d"/></linearGradient>
+<linearGradient id="${u}cl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#b4b4b4"/></linearGradient>
+<linearGradient id="${u}cd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#505050"/><stop offset="1" stop-color="#0f0f0f"/></linearGradient>
+<radialGradient id="${u}gl"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<filter id="${u}bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.5"/></filter>
+</defs>`}
+
+/* ---------- scenes ---------- */
+ART.bg[1]=c=>`<circle cx="60" cy="70" r="50" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-opacity=".45" stroke-width="2"/><circle cx="60" cy="70" r="42" fill="none" stroke="#fff" stroke-opacity=".16"/>`;
+ART.bg[2]=c=>{let s='<g stroke="#fff" stroke-opacity=".13">';for(let i=-30;i<=150;i+=15)s+=`<line x1="${i}" y1="0" x2="${i}" y2="140"/>`;for(let j=10;j<140;j+=15)s+=`<line x1="0" y1="${j}" x2="120" y2="${j}"/>`;return s+'</g>'};
+ART.bg[3]=c=>{let s='';for(let i=0;i<12;i++){const a=i*Math.PI/6,b=a+.2;s+=`<path d="M60 70L${(60+160*Math.cos(a)).toFixed(1)} ${(70+160*Math.sin(a)).toFixed(1)}L${(60+160*Math.cos(b)).toFixed(1)} ${(70+160*Math.sin(b)).toFixed(1)}Z" fill="#fff" fill-opacity=".08"/>`}return s};
+ART.bg[4]=c=>{let s='';for(let i=0;i<30;i++)s+=`<circle cx="${(R(i)*120).toFixed(0)}" cy="${(R(i+50)*140).toFixed(0)}" r="${(R(i+90)*1.2+.4).toFixed(1)}" fill="#fff" fill-opacity="${(.35+R(i+9)*.6).toFixed(2)}"/>`;return s+star4(20,26,5)+star4(100,40,4)+star4(14,100,3.5,.7)+star4(104,112,5)+star4(86,14,3)};
+ART.bg[5]=c=>`<rect width="120" height="140" rx="16" fill="${'url(#'+c.u+'g5)'}"/>`;
+ART.bg[6]=c=>{let s='<circle cx="94" cy="26" r="8" fill="#e4e4e4" fill-opacity=".85"/>';let x=0,i=0;while(x<120){const w=10+R(i)*10,h=34+R(i+7)*56;s+=`<rect x="${x.toFixed(1)}" y="${(140-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="#151515" stroke="#4a4a4a" stroke-width=".8"/>`;for(let wy=140-h+5;wy<134;wy+=7)for(let wx=x+2.5;wx<x+w-3;wx+=4.2)if(R(wx*3+wy)>.55)s+=`<rect x="${wx.toFixed(1)}" y="${wy.toFixed(1)}" width="2" height="3" fill="#fff" fill-opacity=".55"/>`;x+=w;i++}return s};
+ART.bg[7]=c=>`<polygon points="0,102 18,72 34,90 56,48 78,88 98,64 120,98 120,140 0,140" fill="#303030" stroke="#666" stroke-width=".8"/><polygon points="50,60 56,48 62,60 58,57 56,62 54,57" fill="#fff"/><polygon points="92,72 98,64 104,74 100,71 98,75 95,71" fill="#fff"/><polygon points="0,124 22,94 44,114 66,86 92,114 112,100 120,108 120,140 0,140" fill="#161616" stroke="#555" stroke-width=".8"/>`+star4(22,22,3.5,.7)+star4(98,20,3,.6);
+ART.bg[8]=c=>`<g opacity=".9"><rect x="0" y="0" width="120" height="140" fill="#fff" fill-opacity=".03"/><rect x="6" y="14" width="26" height="50" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".2"/><rect x="88" y="14" width="26" height="50" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".2"/><line x1="4" y1="38" x2="116" y2="38" stroke="#d0d0d0" stroke-width="3.5"/><rect x="10" y="22" width="7" height="32" rx="1.5" fill="#3d3d3d" stroke="#bbb"/><rect x="18" y="26" width="5" height="24" rx="1.5" fill="#555" stroke="#bbb"/><rect x="103" y="22" width="7" height="32" rx="1.5" fill="#3d3d3d" stroke="#bbb"/><rect x="97" y="26" width="5" height="24" rx="1.5" fill="#555" stroke="#bbb"/><path d="M0 132H120" stroke="#fff" stroke-opacity=".25"/></g>`;
+ART.bg[9]=c=>`<circle cx="88" cy="38" r="40" fill="url(#${c.u}gl)"/><circle cx="88" cy="38" r="22" fill="#e9e9e9"/><circle cx="80" cy="32" r="4" fill="#cfcfcf"/><circle cx="94" cy="46" r="5" fill="#d3d3d3"/><circle cx="96" cy="28" r="2.5" fill="#cfcfcf"/>`+star4(18,24,4)+star4(30,70,3,.6)+star4(104,96,3.5,.7)+star4(14,112,3,.6);
+ART.bg[10]=c=>`<path d="M22 140V62Q22 14 60 10Q98 14 98 62V140Z" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="1.5"/><path d="M33 140V66Q33 28 60 22Q87 28 87 66V140" fill="none" stroke="#fff" stroke-opacity=".3"/><circle cx="60" cy="44" r="10" fill="none" stroke="#fff" stroke-opacity=".5"/><path d="M60 34V54M50 44H70M53 37L67 51M67 37L53 51" stroke="#fff" stroke-opacity=".3"/><path d="M8 140V40M112 140V40" stroke="#fff" stroke-opacity=".25" stroke-width="3"/>`;
+ART.bg[11]=c=>{let s='';for(let i=0;i<9;i++){const a=(200+i*17.5)*Math.PI/180;s+=`<path d="M60 -10L${(60+120*Math.cos(a-.07)).toFixed(1)} ${(-10-120*Math.sin(a-.07)).toFixed(1)}L${(60+120*Math.cos(a+.07)).toFixed(1)} ${(-10-120*Math.sin(a+.07)).toFixed(1)}Z" fill="#fff" fill-opacity=".1" transform="rotate(0)"/>`}
+ s='<path d="M60 -6L-20 150L140 150Z" fill="#fff" fill-opacity=".08"/><path d="M60 -6L20 150L100 150Z" fill="#fff" fill-opacity=".08"/>';
+ [[10,134,16],[34,140,18],[60,136,20],[88,140,18],[112,134,16]].forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${p[2]}" fill="#fff" fill-opacity=".9"/>`);
+ [[16,26,10],[27,22,8],[96,32,9],[106,36,8]].forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${p[2]}" fill="#fff" fill-opacity=".4"/>`);return s};
+
+/* ---------- auras ---------- */
+ART.aur[1]=c=>`<circle cx="60" cy="68" r="38" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2"/><circle cx="60" cy="68" r="48" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.6"/><circle cx="60" cy="68" r="58" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.4" stroke-dasharray="3 5"/>`;
+ART.aur[2]=c=>{let s='';[[10,66,.18],[26,92,.26],[42,78,.2],[60,108,.3],[78,80,.2],[94,94,.26],[110,64,.18]].forEach(p=>{const x=p[0],h=p[1],w=12;s+=`<path d="M${x-w} 140Q${x-w*.5} ${140-h*.55} ${x} ${140-h}Q${x+w*.3} ${140-h*.5} ${x+w} 140Z" fill="#fff" fill-opacity="${p[2]}" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>`});return s};
+ART.aur[3]=c=>{const b1='22,4 12,44 26,46 10,100',b2='98,2 110,42 94,46 112,96';return `<g fill="none" stroke-linejoin="round"><polyline points="${b1}" stroke="#fff" stroke-opacity=".25" stroke-width="7"/><polyline points="${b2}" stroke="#fff" stroke-opacity=".25" stroke-width="7"/><polyline points="${b1}" stroke="#fff" stroke-width="2.4"/><polyline points="${b2}" stroke="#fff" stroke-width="2.4"/></g>`};
+ART.aur[4]=c=>{let s=`<circle cx="60" cy="66" r="68" fill="url(#${c.u}gl)"/>`;for(let i=0;i<14;i++){const a=i*Math.PI/7;s+=`<line x1="${(60+42*Math.cos(a)).toFixed(1)}" y1="${(66+42*Math.sin(a)).toFixed(1)}" x2="${(60+68*Math.cos(a)).toFixed(1)}" y2="${(66+68*Math.sin(a)).toFixed(1)}" stroke="#fff" stroke-opacity=".55" stroke-width="${i%2?1.2:2.2}" stroke-linecap="round"/>`}return s};
+ART.aur[5]=c=>star4(16,30,7)+star4(104,24,6)+star4(10,86,5,.7)+star4(110,84,7)+star4(30,10,4,.7)+star4(92,52,3.5,.6)+star4(22,120,5,.7)+star4(100,126,4.5,.7);
+ART.aur[6]=c=>{let s='';[[16,126,16],[40,134,18],[66,130,20],[92,134,18],[110,122,14],[8,90,12],[114,88,12]].forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${p[2]}" fill="#fff" fill-opacity=".38" filter="url(#${c.u}bl)"/>`);return s};
+ART.aur[7]=c=>`<ellipse cx="60" cy="78" rx="30" ry="9" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2"/><ellipse cx="60" cy="78" rx="46" ry="15" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.8"/><ellipse cx="60" cy="78" rx="62" ry="22" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1.5"/>`+star4(8,60,4)+star4(112,58,4);
+ART.aur[8]=c=>`<circle cx="60" cy="52" r="46" fill="url(#${c.u}gl)"/><circle cx="60" cy="52" r="30" fill="#000" stroke="#fff" stroke-width="2.4"/><circle cx="60" cy="52" r="34" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1"/>`;
+
+/* ---------- eyes, brows, mouth ---------- */
+const eyeW=(c,cx,rx,ry,ir)=>`<ellipse cx="${cx}" cy="55" rx="${rx}" ry="${ry}" fill="#fff" stroke="${c.ink}" stroke-width=".9"/><circle cx="${cx}" cy="55.3" r="${ir}" fill="#0c0c0c"/><circle cx="${cx+ir*.4}" cy="54.3" r="${(ir*.36).toFixed(2)}" fill="#fff"/>`;
+const lidA=(c,cx,rx,ry)=>`<path d="M${cx-rx-.4} 55.2Q${cx} ${(55-ry*1.9).toFixed(1)} ${cx+rx+.4} 55.2" fill="none" stroke="${c.ink}" stroke-width="1.5" stroke-linecap="round"/>`;
+const brow=(d,w)=>`<path d="${d}" fill="none" stroke="#141414" stroke-width="${w||2.3}" stroke-linecap="round"/>`;
+const smile=(c)=>`<path d="M53.5 72Q60 77.5 66.5 72" fill="none" stroke="${c.ink}" stroke-width="1.8" stroke-linecap="round"/>`;
+const flat=(c)=>`<path d="M54.5 72.5H65.5" fill="none" stroke="${c.ink}" stroke-width="1.9" stroke-linecap="round"/>`;
+ART.eyes[0]=c=>eyeW(c,50,5.2,3.8,2.7)+eyeW(c,70,5.2,3.8,2.7)+lidA(c,50,5.2,3.8)+lidA(c,70,5.2,3.8)+brow('M44.5 47.5Q50 44.2 55.5 46.6')+brow('M75.5 47.5Q70 44.2 64.5 46.6')+smile(c);
+ART.eyes[1]=c=>eyeW(c,50,5.2,3.2,2.5)+eyeW(c,70,5.2,3.2,2.5)+`<path d="M44.4 50L55.8 54.4L55.8 48L44.4 48Z" fill="${c.sk}"/><path d="M75.6 50L64.2 54.4L64.2 48L75.6 48Z" fill="${c.sk}"/><path d="M44.4 50.2L55.8 54.6M75.6 50.2L64.2 54.6" stroke="${c.ink}" stroke-width="1.6" stroke-linecap="round"/>`+brow('M43.5 45L56.5 50',2.8)+brow('M76.5 45L63.5 50',2.8)+flat(c);
+ART.eyes[2]=c=>`<path d="M44.6 55Q50 60.2 55.4 55M64.6 55Q70 60.2 75.4 55" fill="none" stroke="${c.ink}" stroke-width="1.9" stroke-linecap="round"/><path d="M45 56.6L43.4 58.2M70 60.2V62M55 56.6L56.6 58.2M65 56.6L63.4 58.2M75 56.6L76.6 58.2" stroke="${c.ink}" stroke-width=".9" stroke-linecap="round"/>`+brow('M44.5 46.6Q50 43 55.5 45.6',2)+brow('M75.5 46.6Q70 43 64.5 45.6',2)+`<path d="M54.5 72Q60 75.6 65.5 72" fill="none" stroke="${c.ink}" stroke-width="1.7" stroke-linecap="round"/>`;
+ART.eyes[3]=c=>`<rect x="43.5" y="52.6" width="13" height="5.2" rx="2.4" fill="#050505" stroke="#fff" stroke-opacity=".7" stroke-width=".7"/><rect x="63.5" y="52.6" width="13" height="5.2" rx="2.4" fill="#050505" stroke="#fff" stroke-opacity=".7" stroke-width=".7"/><rect x="46" y="54.2" width="5" height="1.8" rx=".9" fill="#fff"/><rect x="66" y="54.2" width="5" height="1.8" rx=".9" fill="#fff"/>`+brow('M43.5 48H56.5',2.6)+brow('M63.5 48H76.5',2.6)+flat(c);
+ART.eyes[4]=c=>`<circle cx="50" cy="55" r="9" fill="url(#${c.u}gl)"/><circle cx="70" cy="55" r="9" fill="url(#${c.u}gl)"/><circle cx="50" cy="55" r="5" fill="#fff" stroke="#000" stroke-width="1.2"/><circle cx="70" cy="55" r="5" fill="#fff" stroke="#000" stroke-width="1.2"/>`+flat(c);
+ART.eyes[5]=c=>eyeW(c,50,5.2,3.8,2.7)+lidA(c,50,5.2,3.8)+`<path d="M64.6 55.4Q70 51 75.4 55.4" fill="none" stroke="${c.ink}" stroke-width="2" stroke-linecap="round"/>`+brow('M44.5 47.5Q50 44.2 55.5 46.6')+brow('M64.5 45.4Q70 42.6 75.5 45.2')+`<path d="M53.5 71.5Q61 78 68.5 70.5" fill="none" stroke="${c.ink}" stroke-width="1.8" stroke-linecap="round"/>`;
+ART.eyes[6]=c=>eyeW(c,50,6.2,5,3.4)+eyeW(c,70,6.2,5,3.4)+lidA(c,50,6.2,5)+lidA(c,70,6.2,5)+brow('M43.5 44.5Q50 40.6 56.5 44',2.1)+brow('M76.5 44.5Q70 40.6 63.5 44',2.1)+`<path d="M52.5 70Q60 83 67.5 70Z" fill="${c.ink}" stroke="${c.ink}" stroke-width="1" stroke-linejoin="round"/><path d="M55 70.8H65" stroke="#fff" stroke-width="1.6"/>`;
+
+/* ---------- hair (back layer sits behind head, front layer on top) ---------- */
+const HP=c=>`fill="${c.hg}" stroke="#a9a9a9" stroke-width=".9" stroke-linejoin="round"`;
+const hl=d=>`<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2.2" stroke-linecap="round"/>`;
+const SHORT=c=>`<path ${HP(c)} d="M35.5 54Q32 28 50 22Q60 19 70 22Q88 28 84.5 54Q82 42 78 38Q68 33 56 36Q44 38 41 42Q37 46 35.5 54Z"/>`+hl('M45 27Q58 20 73 25');
+ART.hairF[1]=SHORT;
+ART.hairF[2]=c=>`<path d="M36 51Q35 29 60 28Q85 29 84 51Q81 39 60 37Q39 39 36 51Z" fill="#2c2c2c" stroke="#9a9a9a" stroke-width=".8"/>`+hl('M44 31Q60 26 76 31');
+ART.hairF[3]=c=>`<path ${HP(c)} d="M35 52L30 33L41 38L39 20L50 31L56 12L62 29L70 12L72 31L82 20L81 38L90 33L85 52Q82 42 76 38Q60 32 44 38Q38 42 35 52Z"/>`+hl('M50 33L56 18M64 31L70 18');
+ART.hairF[4]=c=>`<path ${HP(c)} d="M35.5 56Q32 28 50 22Q60 19 70 22Q88 28 84.5 56Q82 44 74 36Q58 31 44 44L38 60Q36 60 35.5 56Z"/>`+hl('M46 27Q60 20 74 26');
+ART.hairB[4]=c=>`<path ${HP(c)} d="M33 54Q29 22 60 20Q91 22 87 54L92 104Q86 112 79 106L79 70L41 70L41 106Q34 112 28 104Z"/>`;
+ART.hairF[5]=c=>SHORT(c)+`<circle cx="60" cy="17" r="9" ${HP(c)}/><path d="M53 15Q60 21 67 15" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="1.4"/><ellipse cx="60" cy="25" rx="9" ry="2.4" fill="#d9d9d9" stroke="#000" stroke-width=".6"/>`;
+ART.hairF[6]=c=>`<path d="M37 50Q36 32 60 30Q84 32 83 50Q78 38 60 36Q42 38 37 50Z" fill="#2a2a2a" stroke="#9a9a9a" stroke-width=".7"/><path ${HP(c)} d="M52 38L49 18L54 10L60 4L66 10L71 18L68 38Z"/>`+hl('M56 30L55 14M64 30L65 14');
+ART.hairB[7]=c=>{let s=`<ellipse cx="60" cy="40" rx="33" ry="29" ${HP(c)}/>`;for(let a=150;a<=390;a+=16){const r=a*Math.PI/180;s+=`<circle cx="${(60+33*Math.cos(r)).toFixed(1)}" cy="${(40+29*Math.sin(r)).toFixed(1)}" r="6" ${HP(c)}/>`}return s+`<ellipse cx="60" cy="40" rx="30" ry="26" fill="${c.hg}"/>`};
+ART.hairF[7]=c=>`<path ${HP(c)} d="M37.5 51Q37 33 60 30Q83 33 82.5 51Q79 41 60 40Q41 41 37.5 51Z"/>`+hl('M44 35Q60 30 76 35');
+ART.hairF[8]=SHORT;
+ART.hairB[8]=c=>`<path ${HP(c)} d="M80 34Q106 30 103 64Q101 88 92 100Q97 74 91 62Q85 52 80 50Z"/><rect x="78" y="34" width="9" height="9" rx="3" fill="#e5e5e5" stroke="#000" stroke-width=".7"/>`;
+ART.hairF[9]=SHORT;
+ART.hairB[9]=c=>{let s='';[[33,1],[87,-1]].forEach(p=>{for(let i=0;i<7;i++){const y=56+i*8.2;s+=`<ellipse cx="${p[0]+p[1]*(i%2?1.8:-1.2)+p[1]*-1*i*.3}" cy="${y}" rx="4.6" ry="5" ${HP(c)}/>`}});return s};
+ART.hairF[10]=c=>`<path ${HP(c)} d="M36 51Q35 28 60 25Q85 28 84 51Q80 38 74 34Q60 30 46 34Q40 38 36 51Z"/>`+hl('M44 31Q60 25 76 31')+hl('M42 35Q60 28 78 35');
+ART.hairF[11]=c=>`<path ${HP(c)} d="M35 52Q30 30 44 24Q50 6 72 10Q94 14 86 52Q82 40 76 36Q62 30 46 38Q38 42 35 52Z"/>`+hl('M52 14Q68 8 82 18')+hl('M46 26Q60 20 76 26');
+ART.hairB[12]=c=>{let s='';[[38,-1],[82,1]].forEach(p=>{for(let i=0;i<6;i++){const x=p[0]+p[1]*i*2.4,y2=88+i*4+(i%2?6:0);s+=`<path d="M${x} 42Q${x+p[1]*8} 66 ${x+p[1]*(4+i)} ${y2}" fill="none" stroke="#a9a9a9" stroke-width="7.4" stroke-linecap="round"/><path d="M${x} 42Q${x+p[1]*8} 66 ${x+p[1]*(4+i)} ${y2}" fill="none" stroke="#141414" stroke-width="5.6" stroke-linecap="round"/>`}});return s};
+ART.hairF[12]=c=>`<path ${HP(c)} d="M35.5 54Q32 28 50 22Q60 19 70 22Q88 28 84.5 54Q82 42 78 38Q70 31 60 31Q50 31 42 38Q38 42 35.5 54Z"/>`+hl('M45 27Q58 20 73 25');
+
+/* ---------- outfits: {pre, base, over, sleeve} ---------- */
+const OUT=(base,over,sleeve,pre)=>({pre:pre||'',base:base,over:over||'',sleeve:sleeve});
+ART.out[0]=c=>OUT(`<path d="${BODY}" fill="${c.cl}" stroke="#8d8d8d"/><path d="M40 94Q36 110 33 126M80 94Q84 110 87 126" fill="none" stroke="#b9b9b9"/>`,`<path d="M49 92Q60 105 71 92" fill="none" stroke="#9a9a9a" stroke-width="2.6"/>`,c.cl);
+ART.out[1]=c=>OUT(`<path d="${BODY}" fill="${c.cd}" stroke="#000"/><path d="M38 128Q60 118 82 128L84 140H36Z" fill="#242424" stroke="#000"/>`,`<path d="M44 92Q60 112 76 92" fill="${c.skd}" fill-opacity="0" stroke="#000" stroke-width="2.4"/><path d="M54 99L53 118M66 99L67 118" stroke="#e5e5e5" stroke-width="1.6" stroke-linecap="round"/><circle cx="53" cy="119" r="1.6" fill="#fff"/><circle cx="67" cy="119" r="1.6" fill="#fff"/>`,c.cd,`<path d="M36 94Q34 70 60 66Q86 70 84 94Z" fill="#323232" stroke="#000"/>`);
+ART.out[2]=c=>OUT(`<path d="${BODY}" fill="#0b0b0b" stroke="#fff" stroke-width="1.2"/><text x="60" y="122" font-size="8.5" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="1.3" font-family="Helvetica,Arial,sans-serif">LOCKED IN</text><line x1="36" y1="127" x2="84" y2="127" stroke="#fff" stroke-width="1.2"/>`,`<path d="M44 92Q60 112 76 92" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M54 99L53 112M66 99L67 112" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>`,'#0b0b0b',`<path d="M36 94Q34 70 60 66Q86 70 84 94Z" fill="#111" stroke="#fff" stroke-width="1"/>`);
+ART.out[3]=c=>OUT(`<path d="${BODY}" fill="${c.cd}" stroke="#000"/><path d="M50 91L60 126L70 91Z" fill="#f4f4f4" stroke="#999" stroke-width=".8"/>`,`<path d="M50 91L42 112L54 128L60 126Z" fill="#141414" stroke="#8a8a8a" stroke-width=".9"/><path d="M70 91L78 112L66 128L60 126Z" fill="#141414" stroke="#8a8a8a" stroke-width=".9"/><path d="M58 97H62L64 126L60 132L56 126Z" fill="#000" stroke="#fff" stroke-width=".8"/><rect x="57" y="94" width="6" height="5" rx="1.5" fill="#000" stroke="#fff" stroke-width=".8"/><path d="M84 108L92 108L92 114L84 114Z" fill="#fff"/>`,c.cd);
+ART.out[4]=c=>OUT(`<path d="${BODY}" fill="${c.mg}" stroke="#444"/><path d="M60 94V140M40 108Q60 120 80 108M36 122Q60 134 84 122" fill="none" stroke="#6b6b6b" stroke-width="1.4"/><circle cx="48" cy="114" r="1.4" fill="#555"/><circle cx="72" cy="114" r="1.4" fill="#555"/>`,`<path d="M46 90Q60 106 74 90L72 100Q60 112 48 100Z" fill="${c.mg}" stroke="#444"/><ellipse cx="21" cy="102" rx="15" ry="11" fill="${c.mg}" stroke="#444"/><ellipse cx="99" cy="102" rx="15" ry="11" fill="${c.mg}" stroke="#444"/><path d="M9 102Q21 92 33 102M12 108Q21 100 30 108" fill="none" stroke="#6b6b6b"/><path d="M87 102Q99 92 111 102M90 108Q99 100 108 108" fill="none" stroke="#6b6b6b"/>`,c.mg);
+ART.out[5]=c=>OUT(`<path d="M4 140Q8 102 40 92L60 134L80 92Q112 102 116 140Z" fill="${c.cl}" stroke="#8d8d8d"/><path d="M50 92L60 134L70 92Z" fill="#2a2a2a"/><path d="M28 124H92V132H28Z" fill="#161616" stroke="#fff" stroke-opacity=".4"/>`,`<path d="M46 92L60 130M74 92L60 130" stroke="#8d8d8d" stroke-width="1.6"/>`,c.cl);
+ART.out[6]=c=>OUT(`<path d="M10 140Q12 104 36 96L40 140Z" fill="${c.sg}" stroke="#000" stroke-opacity=".5"/><path d="M110 140Q108 104 84 96L80 140Z" fill="${c.sg}" stroke="#000" stroke-opacity=".5"/><path d="M36 96Q46 93 52 90Q60 96 68 90Q74 93 84 96L82 140H38Z" fill="#141414" stroke="#fff" stroke-width=".9"/>`,`<path d="M49 92Q60 104 71 92" fill="none" stroke="#fff" stroke-width="1.6"/>`,c.sg);
+ART.out[7]=c=>OUT(`<path d="${BODY}" fill="#121212" stroke="#000"/><path d="M10 140Q12 102 40 94L44 120L30 140Z" fill="${c.cl}" stroke="#777"/><path d="M110 140Q108 102 80 94L76 120L90 140Z" fill="${c.cl}" stroke="#777"/><path d="M13 128L34 128M14 133L31 133" stroke="#111" stroke-width="2"/><path d="M107 128L86 128M106 133L89 133" stroke="#111" stroke-width="2"/><circle cx="46" cy="112" r="7" fill="#fff" stroke="#777"/><text x="46" y="116" font-size="10" font-weight="800" fill="#111" text-anchor="middle" font-family="Georgia,serif">L</text><path d="M60 98V140" stroke="#555"/>`,`<path d="M46 91Q60 105 74 91" fill="none" stroke="#000" stroke-width="5"/><path d="M46 91Q60 105 74 91" fill="none" stroke="#fff" stroke-width="1.6"/>`,c.cl);
+ART.out[8]=c=>{let b='';for(let i=0;i<14;i++){const x=10+R(i+3)*100,y=96+R(i+30)*44,rx=7+R(i+60)*9,ry=4+R(i+70)*6;b+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" transform="rotate(${(R(i+90)*180).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${i%3===0?'#2a2a2a':i%3===1?'#b3b3b3':'#4a4a4a'}"/>`}
+ return OUT(`<clipPath id="${c.u}cp"><path d="${BODY}"/></clipPath><path d="${BODY}" fill="#7d7d7d"/><g clip-path="url(#${c.u}cp)">${b}</g><path d="${BODY}" fill="none" stroke="#000"/><rect x="28" y="112" width="17" height="13" rx="1.5" fill="#6a6a6a" stroke="#000"/><circle cx="36.5" cy="117" r="1.4" fill="#222"/><rect x="75" y="108" width="17" height="6" fill="#d2d2d2" stroke="#000"/>`,`<path d="M47 91Q60 101 73 91L73 97Q60 106 47 97Z" fill="#555" stroke="#000"/>`,'#6c6c6c')};
+ART.out[9]=c=>OUT(`<path d="${BODY}" fill="${c.cl}" stroke="#8d8d8d"/><rect x="10" y="127" width="100" height="9" fill="#111" stroke="#000"/><path d="M56 127L52 140M64 127L68 140" stroke="#111" stroke-width="4"/>`,`<path d="M46 91Q58 112 82 134L68 138L44 104Z" fill="#f4f4f4" stroke="#8d8d8d"/><path d="M74 91Q62 112 38 134L52 138L76 104Z" fill="#fafafa" stroke="#8d8d8d"/>`,c.cl);
+ART.out[10]=c=>OUT(`<path d="${BODY}" fill="#cdcdcd" stroke="#555"/><path d="M52 94L36 112L44 140H60Z" fill="#bcbcbc" stroke="#555"/><path d="M68 94L84 112L76 140H60Z" fill="#c4c4c4" stroke="#555"/><path d="M10 126H110V132H10Z" fill="#8a8a8a"/><rect x="55" y="122" width="10" height="14" rx="2" fill="#777" stroke="#333"/><circle cx="52" cy="108" r="1.5" fill="#444"/><circle cx="68" cy="108" r="1.5" fill="#444"/><circle cx="51" cy="118" r="1.5" fill="#444"/><circle cx="69" cy="118" r="1.5" fill="#444"/>`,`<path d="M42 86Q48 80 56 92L50 100Z" fill="#bcbcbc" stroke="#555"/><path d="M78 86Q72 80 64 92L70 100Z" fill="#c4c4c4" stroke="#555"/>`,'#c9c9c9');
+ART.out[11]=c=>OUT(`<path d="${BODY}" fill="#0d0d0d" stroke="#000"/><path d="M50 91L60 130L70 91Z" fill="#fff" stroke="#999" stroke-width=".8"/><circle cx="60" cy="104" r="1.2" fill="#000"/><circle cx="60" cy="112" r="1.2" fill="#000"/><circle cx="60" cy="120" r="1.2" fill="#000"/>`,`<path d="M50 91L40 114L56 130L60 130Z" fill="#050505" stroke="#bdbdbd" stroke-width="1.1"/><path d="M70 91L80 114L64 130L60 130Z" fill="#050505" stroke="#bdbdbd" stroke-width="1.1"/>`,'#0d0d0d');
+ART.out[12]=c=>{let r='';for(let y=104;y<138;y+=8)r+=`<rect x="30" y="${y}" width="60" height="6.4" rx="1.4" fill="#181818" stroke="#d0d0d0" stroke-width=".6"/>`;
+ return OUT(`<path d="${BODY}" fill="${c.cd}" stroke="#000"/>${r}<path d="M60 98V140" stroke="#d0d0d0" stroke-width=".7"/>`,`<path d="M44 88Q60 110 76 88L74 98Q60 114 46 98Z" fill="#181818" stroke="#e0e0e0" stroke-width=".9"/><path d="M5 98L34 93L36 127L8 134Z" fill="#161616" stroke="#e0e0e0" stroke-width=".9"/><path d="M115 98L86 93L84 127L112 134Z" fill="#161616" stroke="#e0e0e0" stroke-width=".9"/><path d="M7 108L35 104M8 118L36 114M9 128L36 124M113 108L85 104M112 118L84 114M111 128L84 124" stroke="#e0e0e0" stroke-opacity=".7" stroke-width=".8"/>`,c.cd)};
+ART.out[13]=c=>{let f='';for(let i=0;i<9;i++){const a=(195+i*18.75)*Math.PI/180,x=60+23*Math.cos(a),y=94+13*Math.sin(a)+6;f+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="7" ry="3" transform="rotate(${(195+i*18.75+90).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})" fill="#fff" stroke="#9b9b9b" stroke-width=".8"/>`}
+ return OUT(`<ellipse cx="60" cy="108" rx="58" ry="40" fill="url(#${c.u}gl)"/><path d="M6 140Q8 102 40 92L60 100L80 92Q112 102 114 140Z" fill="${c.cl}" stroke="#9b9b9b"/><path d="M30 104Q34 124 28 140M90 104Q86 124 92 140M46 108Q50 126 46 140M74 108Q70 126 74 140" fill="none" stroke="#c8c8c8"/>`,f,c.cl)};
+
+/* ---------- assembly ---------- */
+function headBase(c){return `<ellipse cx="36.4" cy="58" rx="3.8" ry="6" fill="${c.sg}" stroke="#000" stroke-opacity=".5"/><ellipse cx="83.6" cy="58" rx="3.8" ry="6" fill="${c.sg}" stroke="#000" stroke-opacity=".5"/><path d="M36 52Q35.5 27 60 27Q84.5 27 84 52Q83.5 74 71 80Q66 83 60 83Q54 83 49 80Q36.5 74 36 52Z" fill="${c.sg}" stroke="#000" stroke-opacity=".6"/><path d="M60 56.5Q57.5 64 59 65.6Q60 66.6 61 65.6" fill="none" stroke="${c.ink}" stroke-opacity=".5" stroke-width="1.1" stroke-linecap="round"/>`}
+let uid=0;
+function avatar(eq,size){
+ const u='a'+(++uid),sk=SK[eq.skin]||SK[0];
+ const c={u:u,sk:sk,skl:shade(sk,.35),skd:shade(sk,-.32),ink:parseInt(sk.slice(1),16)>0x909090?'#1b1b1b':'#050505'};
+ const f=n=>'url(#'+u+n+')';
+ c.sg=f('sk');c.hg=f('hg');c.mg=f('mg');c.dg=f('dg');c.cl=f('cl');c.cd=f('cd');c.gl=f('gl');
+ const A=(k,i)=>{const g=ART[k][i];return g?g(c):''};
+ const o=(ART.out[eq.out]||ART.out[0])(c);
+ let s=defs(c)+'<rect width="120" height="140" rx="16" fill="'+f('bg')+'"/>';
+ s+=A('bg',eq.bg)+A('aur',eq.aur)+A('back',eq.back);
+ if(eq.acc===5&&ART.wings)s+=ART.wings(c);
+ s+=o.pre+o.base+`<path d="M51 74V94Q60 101 69 94V74Z" fill="${c.skd}"/><path d="M51 80Q60 88 69 80V74H51Z" fill="#000" fill-opacity=".2"/>`+o.over;
+ s+=A('pet',eq.pet);
+ s+=A('hairB',eq.hair)+headBase(c)+A('eyes',eq.eyes)+A('hairF',eq.hair);
+ s+=A('acc',eq.acc);
+ s+=A('head',eq.head);
+ if(eq.hand&&eq.hand!==4)s+=`<path d="M80 98Q96 100 95 124L83 126Q84 110 74 102Z" fill="${o.sleeve}" stroke="#000" stroke-opacity=".6"/>`;
+ s+=A('hand',eq.hand);
+ if(eq.back===2)s+='<path d="M43 93L45 128M77 93L75 128" stroke="#9a9a9a" stroke-width="3.4" stroke-linecap="round"/>';
+ if(eq.back===6||eq.back===7)s+='<path d="M44 92L80 130" stroke="#666" stroke-width="3" stroke-linecap="round"/>';
+ return '<svg width="'+size+'" height="'+(size*140/120).toFixed(1)+'" viewBox="0 0 120 140" style="flex:none;border-radius:'+Math.round(size*.13)+'px">'+s+'</svg>';
+}
+/* ===== avatar part B: headwear, face gear, wings, back items, held items, pets ===== */
+const PL=(c,d)=>`<path d="${d}"`;
+const mir=(s)=>`<g transform="translate(120 0) scale(-1 1)">${s}</g>`;
+const LIGHTSKIN=c=>parseInt(c.sk.slice(1),16)>0x909090;
+
+/* ---------- headwear ---------- */
+ART.head[1]=c=>`<path d="M35 47Q35 21 60 21Q85 21 85 47Q60 40 35 47Z" fill="${c.dg}" stroke="#fff" stroke-width=".9"/><path d="M60 22Q55 33 58 43" fill="none" stroke="#fff" stroke-opacity=".35"/><circle cx="60" cy="21.5" r="2" fill="#222" stroke="#fff" stroke-width=".7"/><path d="M58 43Q86 37 102 48Q82 53 58 47Z" fill="#181818" stroke="#fff" stroke-width=".9"/>`;
+ART.head[2]=c=>{let r='';for(let x=40;x<=80;x+=6)r+=`<path d="M${x} 20Q${x+(x-60)*.15} 32 ${x} 42" fill="none" stroke="#9d9d9d" stroke-width=".8"/>`;return `<path d="M34 48Q33 15 60 15Q87 15 86 48Z" fill="${c.cl}" stroke="#555" stroke-width=".9"/>${r}<rect x="33" y="40" width="54" height="10" rx="4.5" fill="#a5a5a5" stroke="#555" stroke-width=".9"/><path d="M39 41V49M45 41V49M51 41V49M57 41V49M63 41V49M69 41V49M75 41V49M81 41V49" stroke="#666" stroke-width=".8"/><circle cx="60" cy="14" r="6" fill="${c.cl}" stroke="#555" stroke-width=".9"/>`};
+ART.head[3]=c=>`<path d="M33 58Q31 20 60 20Q89 20 87 58" fill="none" stroke="#000" stroke-width="5.8"/><path d="M33 58Q31 20 60 20Q89 20 87 58" fill="none" stroke="#e4e4e4" stroke-width="3.4"/><rect x="26" y="47" width="11.5" height="22" rx="5.5" fill="#121212" stroke="#fff" stroke-width="1.2"/><rect x="82.5" y="47" width="11.5" height="22" rx="5.5" fill="#121212" stroke="#fff" stroke-width="1.2"/><circle cx="31.7" cy="58" r="3.2" fill="#444"/><circle cx="88.3" cy="58" r="3.2" fill="#444"/>`;
+ART.head[4]=c=>`<path d="M35 37Q60 29 85 37L85 46Q60 38 35 46Z" fill="#101010" stroke="#fff" stroke-width=".9"/><circle cx="45" cy="40.8" r="1.2" fill="#fff"/><circle cx="55" cy="38.6" r="1.2" fill="#fff"/><circle cx="65" cy="38.6" r="1.2" fill="#fff"/><circle cx="75" cy="40.8" r="1.2" fill="#fff"/><path d="M85 38L100 31L97 44L101 54L85 46Z" fill="#101010" stroke="#fff" stroke-width=".9" stroke-linejoin="round"/>`;
+ART.head[5]=c=>`<ellipse cx="60" cy="35" rx="31" ry="6.5" fill="#060606" stroke="#fff" stroke-width="1.1"/><path d="M41 35L43 7Q60 1 77 7L79 35Z" fill="#0d0d0d" stroke="#fff" stroke-width="1.1"/><ellipse cx="60" cy="7" rx="17" ry="3.6" fill="#1c1c1c" stroke="#fff" stroke-width="1"/><path d="M41.6 29Q60 34 78.4 29L79 35Q60 40 41 35Z" fill="#e8e8e8" stroke="#555" stroke-width=".7"/>`;
+ART.head[6]=c=>`<path d="M35 38L38 13L49 27L60 7L71 27L82 13L85 38Z" fill="${c.mg}" stroke="#000" stroke-width="1" stroke-linejoin="round"/><path d="M34 35H86V44H34Z" fill="#dcdcdc" stroke="#000"/><circle cx="48" cy="39.5" r="2.5" fill="#000" stroke="#fff" stroke-width=".7"/><circle cx="60" cy="39.5" r="2.8" fill="#000" stroke="#fff" stroke-width=".7"/><circle cx="72" cy="39.5" r="2.5" fill="#000" stroke="#fff" stroke-width=".7"/><circle cx="38" cy="13" r="2.5" fill="#fff" stroke="#000" stroke-width=".7"/><circle cx="60" cy="7" r="2.8" fill="#fff" stroke="#000" stroke-width=".7"/><circle cx="82" cy="13" r="2.5" fill="#fff" stroke="#000" stroke-width=".7"/>`;
+ART.head[7]=c=>{let s='<path d="M32 50Q36 16 60 14Q84 16 88 50" fill="none" stroke="#555" stroke-width="1.6"/>';for(let k=0;k<10;k++){const a=172+k*21.5,th=a*Math.PI/180,x=60+28*Math.cos(th),y=50+34*Math.sin(th),rot=a+90;s+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="6.4" ry="2.9" transform="rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${c.cl}" stroke="#666" stroke-width=".8"/>`}return s};
+ART.head[8]=c=>{const h=`<path d="M46 37Q22 38 22 8Q34 20 52 31Z" fill="${c.mg}" stroke="#000" stroke-width="1" stroke-linejoin="round"/><path d="M32 30Q34 26 38 25M27 22Q30 18 33 18" stroke="#777" stroke-width="1" fill="none"/>`;return h+mir(h)};
+ART.head[9]=c=>`<path d="M34 40L36 10L46 28L52 3L60 27L68 3L74 28L84 10L86 40Z" fill="#101010" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M34 36H86V44H34Z" fill="#1c1c1c" stroke="#fff" stroke-width="1.2"/><circle cx="36" cy="10" r="2.2" fill="#fff"/><circle cx="52" cy="3.5" r="2.2" fill="#fff"/><circle cx="68" cy="3.5" r="2.2" fill="#fff"/><circle cx="84" cy="10" r="2.2" fill="#fff"/><path d="M60 35L63 40L60 45L57 40Z" fill="#fff"/>`;
+ART.head[10]=c=>{let s=`<circle cx="60" cy="24" r="40" fill="url(#${c.u}gl)"/>`;for(let i=0;i<9;i++){const a=(200+i*17.5)*Math.PI/180;s+=`<line x1="${(60+22*Math.cos(a)).toFixed(1)}" y1="${(30+22*Math.sin(a)).toFixed(1)}" x2="${(60+42*Math.cos(a)).toFixed(1)}" y2="${(30+42*Math.sin(a)).toFixed(1)}" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`}return s+`<path d="M35 40L37 20L47 31L53 15L60 29L67 15L73 31L83 20L85 40Z" fill="#fff" stroke="#000" stroke-width="1" stroke-linejoin="round"/><path d="M34 37H86V45H34Z" fill="#e6e6e6" stroke="#000"/><circle cx="60" cy="41" r="3" fill="#000"/>`};
+ART.head[11]=c=>`<clipPath id="${c.u}hc"><path d="M33 47Q31 19 60 18Q89 19 87 47Q60 42 33 47Z"/></clipPath><path d="M33 47Q31 19 60 18Q89 19 87 47Q60 42 33 47Z" fill="#7a7a7a"/><g clip-path="url(#${c.u}hc)"><ellipse cx="46" cy="28" rx="10" ry="5" fill="#2b2b2b"/><ellipse cx="72" cy="24" rx="12" ry="5" fill="#b5b5b5"/><ellipse cx="62" cy="38" rx="14" ry="5" fill="#3e3e3e"/><ellipse cx="40" cy="40" rx="8" ry="4" fill="#b5b5b5"/></g><path d="M33 47Q31 19 60 18Q89 19 87 47Q60 42 33 47Z" fill="none" stroke="#000"/><path d="M33 44Q60 39 87 44V49Q60 44 33 49Z" fill="#1b1b1b" stroke="#000" stroke-width=".7"/><rect x="55" y="15" width="10" height="6" rx="1.5" fill="#222" stroke="#bbb" stroke-width=".7"/><path d="M36 49L38 71M84 49L82 71" stroke="#161616" stroke-width="2.6" stroke-linecap="round"/><rect x="36" y="69" width="4" height="5" rx="1" fill="#555" stroke="#000" stroke-width=".6"/><rect x="80" y="69" width="4" height="5" rx="1" fill="#555" stroke="#000" stroke-width=".6"/>`;
+ART.head[12]=c=>`<ellipse cx="63" cy="31" rx="31" ry="11" transform="rotate(-8 63 31)" fill="#1a1a1a" stroke="#fff" stroke-width=".9"/><path d="M35 41Q60 33 85 37" fill="none" stroke="#fff" stroke-opacity=".45"/><circle cx="68" cy="20.5" r="2" fill="#1a1a1a" stroke="#fff" stroke-width=".7"/>`+star4(44,39,3.6);
+ART.head[13]=c=>`<path d="M22 100Q10 20 52 9Q60 2 68 9Q110 20 98 100L84 104Q88 72 83 52Q80 32 60 31Q40 32 37 52Q32 72 36 104Z" fill="${c.cd}" stroke="#bbb" stroke-width="1"/><path d="M38 52Q40 34 60 33Q80 34 82 52" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="2"/>`;
+ART.head[14]=c=>`<path d="M17 42Q40 54 60 52Q80 54 103 42Q95 28 85 35L36 35Q26 28 17 42Z" fill="#262626" stroke="#fff" stroke-width=".9"/><path d="M40 35L42 12Q50 4 58 12Q66 4 76 12L80 35Q60 41 40 35Z" fill="#303030" stroke="#fff" stroke-width=".9"/><path d="M40 31Q60 37 80 31L80 35Q60 41 40 35Z" fill="#c9c9c9" stroke="#555" stroke-width=".7"/>`;
+ART.head[15]=c=>{const h=`<path d="M36 41Q16 37 13 10Q31 13 41 33Z" fill="#ececec" stroke="#000" stroke-width="1"/>`;return h+mir(h)+`<path d="M34 46Q32 18 60 17Q88 18 86 46Q60 41 34 46Z" fill="${c.mg}" stroke="#444"/><path d="M34 42Q60 37 86 42V47Q60 42 34 47Z" fill="#555" stroke="#333" stroke-width=".7"/><rect x="58" y="41" width="4" height="17" rx="1.6" fill="${c.mg}" stroke="#444" stroke-width=".8"/><circle cx="44" cy="44" r="1.3" fill="#222"/><circle cx="76" cy="44" r="1.3" fill="#222"/><path d="M60 18V40" stroke="#777" stroke-width="1.4"/>`};
+ART.head[16]=c=>`<ellipse cx="60" cy="40" rx="38" ry="8" fill="#0c0c0c" stroke="#fff" stroke-width="1"/><path d="M38 40Q47 26 54 14Q60 4 76 2Q66 12 68 24Q72 33 82 40Z" fill="#101010" stroke="#fff" stroke-width="1" stroke-linejoin="round"/><path d="M39 37Q60 44 81 37" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.4"/>`+star4(54,28,4)+star4(66,20,3,.8)+star4(60,34,2.4,.7);
+ART.head[17]=c=>{const a=`<path d="M46 35Q40 18 33 5M41 22Q32 19 25 14M43 18Q40 10 42 1" fill="none" stroke="#000" stroke-width="5.6" stroke-linecap="round"/><path d="M46 35Q40 18 33 5M41 22Q32 19 25 14M43 18Q40 10 42 1" fill="none" stroke="#d6d6d6" stroke-width="3" stroke-linecap="round"/>`;return a+mir(a)};
+ART.head[18]=c=>{const e=`<path d="M37 40L38 14L56 31Z" fill="#101010" stroke="#bbb" stroke-width="1" stroke-linejoin="round"/><path d="M41 34L42 21L51 30Z" fill="#555"/>`;return e+mir(e)};
+ART.head[19]=c=>`<path d="M35.4 40Q60 33 84.6 40L84.6 47Q60 40 35.4 47Z" fill="#fff" stroke="#777" stroke-width=".9"/><path d="M35.4 43.4Q60 36.6 84.6 43.4" fill="none" stroke="#111" stroke-width="1.2"/>`;
+ART.head[20]=c=>{let s=`<circle cx="60" cy="24" r="36" fill="url(#${c.u}gl)"/>`;[[38,24],[48,14],[60,4],[72,14],[82,24]].forEach((p,i)=>{s+=`<path d="M${p[0]-7} 38Q${p[0]-8} ${p[1]+10} ${p[0]} ${p[1]}Q${p[0]+1} ${p[1]+10} ${p[0]+7} 38Z" fill="#fff" stroke="#999" stroke-width=".7"/>`});return s+`<path d="M34 36H86V45H34Z" fill="#d8d8d8" stroke="#000"/><circle cx="60" cy="40.5" r="2.6" fill="#000"/>`};
+ART.head[21]=c=>{const g=`<path d="M33 44L27 64L41 59L41 46Z" fill="#141414" stroke="#ddd" stroke-width=".9"/>`;return g+mir(g)+`<path d="M33 46Q32 20 60 19Q88 20 87 46Q60 41 33 46Z" fill="#141414" stroke="#ddd" stroke-width=".9"/><path d="M60 20V42M46 23Q44 33 42 42M74 23Q76 33 78 42" stroke="#ddd" stroke-opacity=".6" stroke-width=".8"/><path d="M60 21Q42 16 38 3Q50 10 60 14Q70 10 82 3Q78 16 60 21Z" fill="${c.mg}" stroke="#444" stroke-width=".9"/><path d="M33 43Q60 38 87 43V48Q60 43 33 48Z" fill="#333" stroke="#ddd" stroke-width=".7"/>`};
+
+/* ---------- face and neck gear ---------- */
+ART.acc[1]=c=>`<circle cx="50" cy="56" r="8.6" fill="#fff" fill-opacity=".12" stroke="#0a0a0a" stroke-width="2.2"/><circle cx="70" cy="56" r="8.6" fill="#fff" fill-opacity=".12" stroke="#0a0a0a" stroke-width="2.2"/><path d="M58.6 55Q60 53 61.4 55M41.4 55L37 56M78.6 55L83 56" fill="none" stroke="#0a0a0a" stroke-width="2"/><path d="M45 52L48 50M65 52L68 50" stroke="#fff" stroke-opacity=".7" stroke-width="1.4" stroke-linecap="round"/>`;
+ART.acc[2]=c=>`<path d="M35 41Q60 34 85 41L85 47Q60 41 35 47Z" fill="#0a0a0a" stroke="#fff" stroke-width=".9"/><path d="M35 44Q60 37.6 85 44" fill="none" stroke="#fff" stroke-width="1"/><path d="M85 42L96 40L92 44L97 49L85 46Z" fill="#0a0a0a" stroke="#fff" stroke-width=".8" stroke-linejoin="round"/>`;
+ART.acc[3]=c=>`<path d="M39 52H60.6Q60 63 50 63Q39 63 39 52Z" fill="#050505" stroke="#000" stroke-width="1"/><path d="M59.4 52H81Q81 63 70 63Q59 63 59.4 52Z" fill="#050505" stroke="#000" stroke-width="1"/><path d="M38 52H82" stroke="#000" stroke-width="3" stroke-linecap="round"/><path d="M60 54H60" stroke="#000" stroke-width="2.4"/><path d="M43 55L47 53M64 55L68 53" stroke="#fff" stroke-opacity=".55" stroke-width="1.3" stroke-linecap="round"/>`;
+ART.acc[4]=c=>`<ellipse cx="60" cy="14" rx="21" ry="6" transform="rotate(-6 60 14)" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="9"/><ellipse cx="60" cy="14" rx="21" ry="6" transform="rotate(-6 60 14)" fill="none" stroke="#fff" stroke-width="3.2"/><ellipse cx="60" cy="14" rx="21" ry="6" transform="rotate(-6 60 14)" fill="none" stroke="#9a9a9a" stroke-width=".8"/>`;
+ART.wings=c=>{let s='';const side=(layer)=>{let w='';for(let i=0;i<7;i++){const a=(200+i*10.5)*Math.PI/180,L=(layer?28:40)+i*2.6,px=38,py=92,x=px+L/2*Math.cos(a),y=py+L/2*Math.sin(a);w+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(L/2).toFixed(1)}" ry="${layer?4.6:5.6}" transform="rotate(${(a*180/Math.PI).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${layer?'#ededed':'#fff'}" stroke="#8a8a8a" stroke-width=".8"/>`}return w};const w=side(0)+side(1);return w+mir(w)};
+ART.acc[6]=c=>`<circle cx="60" cy="41.5" r="9" fill="url(#${c.u}gl)"/><ellipse cx="60" cy="41.5" rx="4.6" ry="3.1" fill="#fff" stroke="#000" stroke-width="1.1"/><circle cx="60" cy="41.5" r="1.7" fill="#000"/>`;
+ART.acc[7]=c=>`<circle cx="70" cy="56" r="9.4" fill="#fff" fill-opacity=".12" stroke="#111" stroke-width="2.2"/><path d="M65 52L68 50" stroke="#fff" stroke-opacity=".7" stroke-width="1.4" stroke-linecap="round"/><path d="M79 62Q86 84 82 102" fill="none" stroke="#eee" stroke-width="1.3"/><circle cx="82" cy="103" r="1.8" fill="#eee"/>`;
+ART.acc[8]=c=>`<path d="M46 93Q60 114 74 93" fill="none" stroke="#e8e8e8" stroke-width="1.6"/><rect x="52" y="106" width="9.6" height="15" rx="2.8" transform="rotate(-8 56.8 113.5)" fill="${c.mg}" stroke="#444"/><rect x="59" y="108" width="9.6" height="15" rx="2.8" transform="rotate(7 63.8 115.5)" fill="${c.mg}" stroke="#444"/><circle cx="55.6" cy="109" r="1" fill="#333"/><circle cx="64.4" cy="111" r="1" fill="#333"/><path d="M54 114H59M62 116H67" stroke="#555" stroke-width=".8"/>`;
+ART.acc[9]=c=>`<path d="M39 88Q60 106 81 88L83 100Q60 118 37 100Z" fill="#f3f3f3" stroke="#777"/><path d="M41 93Q60 111 79 93M40 97Q60 115 80 97" fill="none" stroke="#bbb" stroke-width="1.1"/><path d="M72 102L80 132L67 130L63 108Z" fill="#e8e8e8" stroke="#777"/><path d="M70 112L79 114M71 120L79 122" stroke="#aaa" stroke-width="1.2"/><path d="M68 130V136M72 131V137M76 131.5V137" stroke="#777" stroke-width="1"/>`;
+ART.acc[10]=c=>`<path d="M36.4 60Q60 69 83.6 60Q83 80 70 82.4Q60 84.4 50 82.4Q37 80 36.4 60Z" fill="#101010" stroke="#aaa" stroke-width=".9"/><path d="M42 70Q60 76.4 78 70" fill="none" stroke="#3a3a3a"/><path d="M36.6 61L33 63M83.4 61L87 63" stroke="#101010" stroke-width="2.4" stroke-linecap="round"/>`;
+ART.acc[11]=c=>`<path d="M47 92L60 111L73 92" fill="none" stroke="#000" stroke-width="6.4"/><path d="M47 92L60 111L73 92" fill="none" stroke="#e8e8e8" stroke-width="4.4"/><path d="M52 95L60 106L68 95" fill="none" stroke="#555" stroke-width="1.4"/><circle cx="60" cy="118" r="7.8" fill="${c.mg}" stroke="#555"/><circle cx="60" cy="118" r="5" fill="none" stroke="#888" stroke-width=".8"/>`+star4(60,118,3.6,1).replace('fill="#fff"','fill="#1a1a1a"');
+ART.acc[12]=c=>`<path d="M36.5 51.5Q60 55 83.5 61" fill="none" stroke="#050505" stroke-width="2.2"/><ellipse cx="50" cy="57" rx="7.4" ry="6.6" fill="#080808" stroke="#aaa" stroke-width=".9"/><path d="M45 54Q48 51.6 52 52" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="1.1" stroke-linecap="round"/>`;
+ART.acc[13]=c=>`<path d="M40 52H59.4Q59 66 48.6 65.4Q39 63 40 52Z" fill="#101010" fill-opacity=".88" stroke="#d6d6d6" stroke-width="1.3"/><path d="M60.6 52H80Q81 63 71.4 65.4Q61 66 60.6 52Z" fill="#101010" fill-opacity=".88" stroke="#d6d6d6" stroke-width="1.3"/><path d="M40 52Q60 48.6 80 52M59.4 54Q60 53 60.6 54" fill="none" stroke="#d6d6d6" stroke-width="1.4"/><path d="M44 57L48 54M65 57L69 54" stroke="#fff" stroke-opacity=".6" stroke-width="1.3" stroke-linecap="round"/>`;
+ART.acc[14]=c=>`<path d="M34 41Q60 33 86 41" fill="none" stroke="#000" stroke-width="6"/><path d="M34 41Q60 33 86 41" fill="none" stroke="#3a3a3a" stroke-width="4"/><rect x="41" y="31" width="16" height="12" rx="5" fill="#161616" stroke="#e0e0e0" stroke-width="1.4"/><rect x="63" y="31" width="16" height="12" rx="5" fill="#161616" stroke="#e0e0e0" stroke-width="1.4"/><path d="M45 35L50 33M67 35L72 33" stroke="#fff" stroke-opacity=".7" stroke-width="1.3" stroke-linecap="round"/><rect x="57" y="34" width="6" height="4" fill="#e0e0e0"/>`;
+ART.acc[15]=c=>`<path d="M36 53L28 51M84 53L92 51" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><rect x="35" y="46" width="50" height="15" rx="6.5" fill="#0a0a0a" stroke="#fff" stroke-width="1.2"/><rect x="39" y="49.4" width="42" height="8.4" rx="4.2" fill="#fff" fill-opacity=".82"/><path d="M44 52.6H60" stroke="#aaa" stroke-width="1.2" stroke-linecap="round"/>`;
+ART.acc[16]=c=>`<path d="M60 96L47 89L47 103Z" fill="#0a0a0a" stroke="#fff" stroke-width=".9" stroke-linejoin="round"/><path d="M60 96L73 89L73 103Z" fill="#0a0a0a" stroke="#fff" stroke-width=".9" stroke-linejoin="round"/><rect x="57" y="92.6" width="6" height="7" rx="2.2" fill="#161616" stroke="#fff" stroke-width=".9"/>`;
+ART.acc[17]=c=>`<path d="M47 93Q60 110 73 93" fill="none" stroke="#e8e8e8" stroke-width="1.5"/><path d="M60 105L65.5 111.5L60 119L54.5 111.5Z" fill="${c.mg}" stroke="#444"/><path d="M60 105V119M54.5 111.5H65.5" stroke="#777" stroke-width=".7"/>`;
+ART.acc[18]=c=>{const k=LIGHTSKIN(c)?'#0a0a0a':'#fff';return `<g stroke="${k}" stroke-width="2.2" stroke-linecap="round"><path d="M42 63L47.6 68.4M45 60.8L50.6 66.2"/><path d="M78 63L72.4 68.4M75 60.8L69.4 66.2"/></g>`};
+ART.acc[19]=c=>`<circle cx="36.4" cy="65.2" r="3.2" fill="none" stroke="#e8e8e8" stroke-width="1.5"/><circle cx="83.6" cy="63.4" r="1.7" fill="#fff" stroke="#555" stroke-width=".5"/>`;
+ART.acc[20]=c=>{let s='<g fill="#000" fill-opacity=".5">';for(let i=0;i<64;i++){const t=R(i+5),side=t<.5?-1:1,y=64+R(i+40)*17,half=Math.max(0,(y>78?7:y>70?20:23)*(1-(y-60)/60)),x=60+side*(8+R(i+80)*Math.max(2,half));if(y>69&&y<76&&Math.abs(x-60)<9)continue;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r=".55"/>`}return s+'</g>'};
+ART.acc[21]=c=>`<path d="M53 77.5Q60 75.5 67 77.5Q68 86 60 90Q52 86 53 77.5Z" fill="${c.hg}" stroke="#a9a9a9" stroke-width=".7"/><path d="M58 80Q60 83 62 80" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1.2"/>`;
+ART.acc[22]=c=>`<path d="M60 69.2Q56 65.6 50 67.6Q47.6 71.6 54 70.8Q58 70.4 60 71.6Q62 70.4 66 70.8Q72.4 71.6 70 67.6Q64 65.6 60 69.2Z" fill="${c.hg}" stroke="#a9a9a9" stroke-width=".7"/>`;
+ART.acc[23]=c=>`<path fill-rule="evenodd" d="M36.2 60Q36 83 60 91Q84 83 83.8 60Q81.6 70 74 73Q60 66 46 73Q38.4 70 36.2 60ZM52 75a8 4.2 0 1 0 16 0a8 4.2 0 1 0 -16 0Z" fill="${c.hg}" stroke="#a9a9a9" stroke-width=".8"/><path d="M50 68.6Q60 63.6 70 68.6Q66 70.8 60 69.8Q54 70.8 50 68.6Z" fill="${c.hg}" stroke="#a9a9a9" stroke-width=".6"/>`;
+ART.acc[24]=c=>{let s='<path d="M46 43L55 66" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="1.5" stroke-linecap="round"/>';for(let k=0;k<5;k++){const t=.12+k*.19,x=46+9*t,y=43+23*t;s+=`<path d="M${(x-2).toFixed(1)} ${(y-.8).toFixed(1)}L${(x+2).toFixed(1)} ${(y+.8).toFixed(1)}" stroke="#000" stroke-opacity=".6" stroke-width="1"/>`}return s};
+
+/* ---------- back items (drawn behind the body) ---------- */
+ART.back[1]=c=>`<path d="M34 90Q-8 100 -2 140H122Q128 100 86 90Z" fill="${c.cd}" stroke="#c4c4c4" stroke-width="1"/><path d="M22 98Q4 120 6 140H22Q18 120 34 96Z" fill="#fff" fill-opacity=".16"/><path d="M98 98Q116 120 114 140H98Q102 120 86 96Z" fill="#fff" fill-opacity=".16"/>`;
+ART.back[2]=c=>`<path d="M30 84Q30 76 38 76H82Q90 76 90 84V126Q90 134 82 134H38Q30 134 30 126Z" fill="#5c5c5c" stroke="#c4c4c4"/><path d="M50 76Q50 68 60 68Q70 68 70 76" fill="none" stroke="#c4c4c4" stroke-width="2.6"/><path d="M36 100H84" stroke="#2a2a2a"/>`;
+ART.back[3]=c=>`<line x1="96" y1="140" x2="96" y2="14" stroke="#d6d6d6" stroke-width="3"/><circle cx="96" cy="13" r="3" fill="#fff" stroke="#000" stroke-width=".7"/><path d="M96 18H118V46L107 40L96 46Z" fill="#fff" stroke="#000" stroke-width=".9" stroke-linejoin="round"/>`+star4(107,30,6).replace('fill="#fff"','fill="#000"');
+ART.back[4]=c=>{const sw=(x1,y1,x2,y2)=>{const dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy),ux=dx/l,uy=dy/l,px=-uy,py=ux,gx=x1+dx*.22,gy=y1+dy*.22;return `<path d="M${x1} ${y1}L${(x1+ux*10).toFixed(1)} ${(y1+uy*10).toFixed(1)}" stroke="#222" stroke-width="4" stroke-linecap="round"/><line x1="${x1+ux*10}" y1="${y1+uy*10}" x2="${x2}" y2="${y2}" stroke="#000" stroke-width="7.4" stroke-linecap="round"/><line x1="${x1+ux*10}" y1="${y1+uy*10}" x2="${x2}" y2="${y2}" stroke="#e6e6e6" stroke-width="4.2" stroke-linecap="round"/><line x1="${(gx-px*7).toFixed(1)}" y1="${(gy-py*7).toFixed(1)}" x2="${(gx+px*7).toFixed(1)}" y2="${(gy+py*7).toFixed(1)}" stroke="#777" stroke-width="3.4" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="3" fill="#999" stroke="#000" stroke-width=".7"/>`};return sw(30,116,100,10)+sw(90,116,20,10)};
+ART.back[5]=c=>`<rect x="6" y="84" width="17" height="38" rx="7.5" fill="#777" stroke="#d0d0d0"/><rect x="97" y="84" width="17" height="38" rx="7.5" fill="#777" stroke="#d0d0d0"/><path d="M9 90H20M100 90H111" stroke="#444" stroke-width="1.4"/><path d="M10 124L14.5 138L19 124Z" fill="#fff" fill-opacity=".95"/><path d="M101 124L105.5 138L110 124Z" fill="#fff" fill-opacity=".95"/>`;
+ART.back[6]=c=>`<g transform="rotate(16 92 100)"><path d="M84 52L86 44M90 52L90 42M96 52L96 44" stroke="#ddd" stroke-width="1.6"/><path d="M84 44L88 40M90 42L94 38M96 44L100 40" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><rect x="82" y="52" width="16" height="50" rx="4" fill="#515151" stroke="#c8c8c8"/><path d="M82 62H98M82 90H98" stroke="#2c2c2c" stroke-width="1.4"/></g>`;
+ART.back[7]=c=>`<g transform="rotate(14 94 90)"><rect x="90.5" y="14" width="7" height="82" rx="2" fill="#2a2a2a" stroke="#d0d0d0"/><path d="M92 18V90" stroke="#8a8a8a" stroke-width=".8"/><path d="M88 4H100L102 16H86Z" fill="#161616" stroke="#d0d0d0" stroke-linejoin="round"/><circle cx="87" cy="7" r="1.6" fill="#fff"/><circle cx="87" cy="12" r="1.6" fill="#fff"/><circle cx="101" cy="7" r="1.6" fill="#fff"/><circle cx="101" cy="12" r="1.6" fill="#fff"/><path d="M90.5 30H97.5M90.5 44H97.5M90.5 58H97.5" stroke="#d0d0d0" stroke-width=".8"/></g>`;
+ART.back[8]=c=>`<g transform="rotate(20 100 76)"><rect x="97" y="12" width="6" height="64" rx="2" fill="${c.mg}" stroke="#000" stroke-width=".9"/><path d="M100 12L98 4L102 4Z" fill="#fff"/><rect x="88" y="72" width="24" height="5.6" rx="2.4" fill="#777" stroke="#000" stroke-width=".8"/><rect x="97.6" y="77" width="4.8" height="16" rx="1" fill="#1a1a1a" stroke="#000" stroke-width=".7"/><circle cx="100" cy="95" r="3.6" fill="#999" stroke="#000" stroke-width=".7"/></g>`;
+ART.back[9]=c=>{const w=`<path d="M46 98Q18 84 2 36Q10 54 18 56Q12 38 22 20Q26 42 34 50Q34 28 44 12Q46 52 56 82Z" fill="${c.dg}" stroke="#e4e4e4" stroke-width=".9" stroke-linejoin="round"/><path d="M46 96Q26 74 20 40M50 90Q40 58 44 22M54 84Q44 62 36 56" fill="none" stroke="#e4e4e4" stroke-opacity=".5" stroke-width=".8"/>`;return w+mir(w)};
+ART.back[10]=c=>`<g fill="none" stroke="#fff"><ellipse cx="60" cy="68" rx="56" ry="16" transform="rotate(-18 60 68)" stroke-opacity=".65" stroke-width="2"/><ellipse cx="60" cy="68" rx="56" ry="16" transform="rotate(18 60 68)" stroke-opacity=".4" stroke-width="1.6"/><ellipse cx="60" cy="68" rx="40" ry="11" transform="rotate(-18 60 68)" stroke-opacity=".25" stroke-width="1" stroke-dasharray="2 4"/></g><circle cx="9" cy="80" r="3.8" fill="#fff"/><circle cx="111" cy="56" r="3.8" fill="#fff"/><circle cx="104" cy="86" r="2.6" fill="#fff" fill-opacity=".8"/>`;
+
+/* ---------- held items (fist at 97,117; rotated 8 degrees) ---------- */
+const G=s=>`<g transform="translate(-8 0) rotate(8 97 117)">${s}</g>`;
+const fist=c=>`<g transform="translate(-8 0)"><ellipse cx="97" cy="117.5" rx="6.2" ry="5.4" fill="${c.sg}" stroke="#000" stroke-opacity=".65"/><path d="M93.2 115.4H100.8M93.6 119.4H100.4" stroke="#000" stroke-opacity=".35" stroke-width=".8" stroke-linecap="round"/></g>`;
+const HELD=(c,s)=>G(s)+fist(c);
+const shaft=(c,y1,y2,col)=>`<rect x="95.4" y="${y1}" width="3.4" height="${y2-y1}" rx="1.6" fill="${col||'#8e8e8e'}" stroke="#000" stroke-width=".6"/>`;
+ART.hand[1]=c=>HELD(c,shaft(c,64,140)+`<path d="M76 75Q97 53 118 75L113.6 80Q97 65 80.4 80Z" fill="${c.mg}" stroke="#000" stroke-width=".9" stroke-linejoin="round"/><rect x="92.6" y="69" width="9" height="6" rx="1.4" fill="#333" stroke="#000" stroke-width=".6"/>`);
+ART.hand[2]=c=>HELD(c,`<rect x="86" y="115" width="24" height="4.4" fill="#d0d0d0" stroke="#000" stroke-width=".5"/><rect x="80" y="103" width="8" height="28" rx="2.2" fill="#3a3a3a" stroke="#e0e0e0" stroke-width=".9"/><rect x="74.6" y="107.6" width="5.4" height="18.8" rx="1.6" fill="#555" stroke="#e0e0e0" stroke-width=".8"/><rect x="108" y="103" width="8" height="28" rx="2.2" fill="#3a3a3a" stroke="#e0e0e0" stroke-width=".9"/><rect x="116" y="107.6" width="4" height="18.8" rx="1.6" fill="#555" stroke="#e0e0e0" stroke-width=".8"/>`);
+ART.hand[3]=c=>HELD(c,`<path d="M97 38L101.4 50V104H92.6V50Z" fill="${c.mg}" stroke="#000" stroke-width=".8" stroke-linejoin="round"/><path d="M97 50V102" stroke="#808080" stroke-width="1.1"/><rect x="85" y="103" width="24" height="5.6" rx="2.4" fill="#6a6a6a" stroke="#000" stroke-width=".7"/><rect x="95" y="108.6" width="4" height="18" fill="#181818"/><path d="M95 111L99 113M95 116L99 118M95 121L99 123" stroke="#fff" stroke-opacity=".4" stroke-width=".7"/><circle cx="97" cy="129" r="3.4" fill="#aaa" stroke="#000" stroke-width=".7"/>`);
+ART.hand[4]=c=>{let r='';for(let i=0;i<8;i++){const a=i*Math.PI/4;r+=`<circle cx="${(23+17.5*Math.cos(a)).toFixed(1)}" cy="${(114+17.5*Math.sin(a)).toFixed(1)}" r="1.4" fill="#ddd"/>`}return `<circle cx="23" cy="114" r="21" fill="${c.cd}" stroke="#fff" stroke-width="2.2"/><circle cx="23" cy="114" r="16" fill="none" stroke="#fff" stroke-opacity=".4"/>${r}<path d="M23 98V130M7 114H39" stroke="#fff" stroke-opacity=".5" stroke-width="2"/><circle cx="23" cy="114" r="6.4" fill="${c.mg}" stroke="#000" stroke-width=".8"/>`};
+ART.hand[5]=c=>`<circle cx="97" cy="76" r="22" fill="url(#${c.u}gl)"/>`+HELD(c,shaft(c,98,140,'#7e7e7e')+`<rect x="92.6" y="90" width="9.6" height="11" rx="2" fill="#2e2e2e" stroke="#bbb" stroke-width=".7"/><path d="M97 91Q81 80 89 60Q94 68 97 54Q100 68 105 60Q113 80 97 91Z" fill="#fff" stroke="#bbb" stroke-width=".6"/><path d="M97 90Q89 82 97 70Q105 82 97 90Z" fill="#c4c4c4"/>`);
+ART.hand[6]=c=>`<circle cx="97" cy="30" r="17" fill="url(#${c.u}gl)"/>`+HELD(c,shaft(c,34,140,'#dcdcdc')+`<path d="M91 38Q88 28 93 22M103 38Q106 28 101 22" fill="none" stroke="#dcdcdc" stroke-width="2.2" stroke-linecap="round"/><circle cx="97" cy="28" r="5.4" fill="#fff" stroke="#000" stroke-width=".8"/>`);
+ART.hand[7]=c=>HELD(c,shaft(c,64,140,'#3a3a3a').replace('stroke="#000"','stroke="#fff"')+`<path d="M76 75Q97 53 118 75L113.6 80Q97 65 80.4 80Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-opacity=".45" stroke-linejoin="round"/><path d="M76 75Q97 53 118 75L113.6 80Q97 65 80.4 80Z" fill="#fff" stroke="#999" stroke-width=".7"/><path d="M85 71L90 76M97 62V70M109 71L104 76" stroke="#bbb" stroke-width=".8"/>`)+star4(76,60,5)+star4(120,64,4,.8)+star4(98,50,3.4,.8);
+ART.hand[8]=c=>HELD(c,shaft(c,24,140,'#999')+`<path d="M97 27Q62 18 48 60Q74 40 97 46Z" fill="${c.mg}" stroke="#000" stroke-width=".9" stroke-linejoin="round"/><path d="M97 28Q66 22 54 54" fill="none" stroke="#fff" stroke-width="1.2"/>`);
+ART.hand[9]=c=>HELD(c,`<path d="M97.5 16Q101.4 60 101 104H94Q94.6 60 97.5 16Z" fill="${c.mg}" stroke="#000" stroke-width=".8" stroke-linejoin="round"/><path d="M99 22Q99.6 62 98.6 102" fill="none" stroke="#fff" stroke-width=".9"/><ellipse cx="97.5" cy="105.6" rx="8.4" ry="3.2" fill="#1e1e1e" stroke="#ddd" stroke-width=".8"/><rect x="94.6" y="108" width="5.8" height="22" rx="1.4" fill="#141414" stroke="#000" stroke-width=".6"/><path d="M94.6 112L100.4 116M94.6 118L100.4 122M94.6 124L100.4 128M100.4 112L94.6 116M100.4 118L94.6 122M100.4 124L94.6 128" stroke="#fff" stroke-opacity=".45" stroke-width=".6"/><circle cx="97.5" cy="131" r="2.8" fill="#bbb" stroke="#000" stroke-width=".7"/>`);
+ART.hand[10]=c=>HELD(c,shaft(c,44,140)+`<path d="M99 48Q118 48 117 82Q108 78 99 76Z" fill="${c.mg}" stroke="#000" stroke-width=".9" stroke-linejoin="round"/><path d="M95.6 50L87 55L95.6 61Z" fill="${c.mg}" stroke="#000" stroke-width=".8"/><path d="M102 56Q110 58 112 70" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1"/>`);
+ART.hand[11]=c=>HELD(c,shaft(c,40,140)+`<rect x="83" y="34" width="28" height="20" rx="2.4" fill="${c.mg}" stroke="#000" stroke-width=".9"/><path d="M83 44H111" stroke="#777" stroke-width=".8"/><path d="M83 38L72 44L83 50Z" fill="${c.mg}" stroke="#000" stroke-width=".8" stroke-linejoin="round"/><rect x="109" y="38" width="5" height="12" fill="#777" stroke="#000" stroke-width=".6"/>`);
+ART.hand[12]=c=>HELD(c,`<path d="M86 74Q114 108 86 142" fill="none" stroke="#000" stroke-width="5.6" stroke-linecap="round"/><path d="M86 74Q114 108 86 142" fill="none" stroke="#d9d9d9" stroke-width="3.4" stroke-linecap="round"/><line x1="86" y1="74" x2="86" y2="142" stroke="#fff" stroke-width=".9"/><rect x="95" y="104" width="4" height="12" rx="1.4" fill="#222" stroke="#aaa" stroke-width=".6"/>`);
+ART.hand[13]=c=>HELD(c,shaft(c,26,140,'#9b9b9b')+`<path d="M97 4L103 22L97 30L91 22Z" fill="${c.mg}" stroke="#000" stroke-width=".9" stroke-linejoin="round"/><path d="M97 8V26" stroke="#777" stroke-width=".8"/><path d="M93 32L101 32M93.6 35L100.4 35" stroke="#fff" stroke-width="1.2"/>`);
+ART.hand[14]=c=>HELD(c,shaft(c,32,140,'#9b9b9b')+`<path d="M85 34Q85 14 87.6 8L90.6 20L97 6L103.4 20L106.4 8Q109 14 109 34Q97 40 85 34Z" fill="${c.mg}" stroke="#000" stroke-width=".9" stroke-linejoin="round"/><path d="M97 8V30M91 22V32M103 22V32" stroke="#777" stroke-width=".8"/>`);
+ART.hand[15]=c=>`<circle cx="97" cy="98" r="24" fill="url(#${c.u}gl)"/>`+HELD(c,`<path d="M97 118V108" stroke="#999" stroke-width="2.6"/><path d="M90 88L97 79L104 88Z" fill="#d6d6d6" stroke="#000" stroke-width=".8" stroke-linejoin="round"/><rect x="89" y="88" width="16" height="22" rx="3" fill="#1b1b1b" stroke="#e0e0e0" stroke-width="1"/><rect x="92.4" y="91.6" width="9.2" height="14.8" rx="2" fill="#fff" fill-opacity=".9"/><circle cx="97" cy="77.6" r="2.4" fill="none" stroke="#d6d6d6" stroke-width="1.2"/>`);
+ART.hand[16]=c=>HELD(c,`<rect x="83" y="86" width="28" height="33" rx="2.4" fill="#161616" stroke="#fff" stroke-width="1.2"/><path d="M111 88V117" stroke="#fff" stroke-width="3.2"/><path d="M111 90V116" stroke="#888" stroke-width="1"/><path d="M87 86V119" stroke="#fff" stroke-opacity=".45" stroke-width="1"/>`+star4(99,100,6).replace('fill="#fff"','fill="#fff"'));
+ART.hand[17]=c=>HELD(c,`<path d="M93 98Q90 92 94 88Q98 84 95 79M99 98Q96 92 100 88Q104 84 101 79" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.5" stroke-linecap="round"/><path d="M104.6 105Q113.6 105 112.4 113Q111 120 104.6 119" fill="none" stroke="#000" stroke-width="4.4"/><path d="M104.6 105Q113.6 105 112.4 113Q111 120 104.6 119" fill="none" stroke="#d4d4d4" stroke-width="2.6"/><rect x="88.6" y="101" width="16.4" height="20" rx="3.4" fill="${c.cl}" stroke="#000" stroke-width=".9"/><ellipse cx="96.8" cy="101.6" rx="7.6" ry="2.2" fill="#1c1c1c"/>`);
+ART.hand[18]=c=>HELD(c,`<circle cx="97" cy="126" r="11.6" fill="#2a2a2a" stroke="#e0e0e0" stroke-width="1.2"/><path d="M88.4 118Q88.4 99 97 99Q105.6 99 105.6 118" fill="none" stroke="#000" stroke-width="5.4"/><path d="M88.4 118Q88.4 99 97 99Q105.6 99 105.6 118" fill="none" stroke="#e0e0e0" stroke-width="3.2"/><circle cx="97" cy="127" r="5" fill="none" stroke="#fff" stroke-opacity=".5"/><path d="M92 122Q94 119 98 119" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.2" stroke-linecap="round"/>`);
+ART.hand[19]=c=>HELD(c,`<path d="M85 84Q75.6 84 77.6 94Q80 102 87.4 99.6M109 84Q118.4 84 116.4 94Q114 102 106.6 99.6" fill="none" stroke="#000" stroke-width="4"/><path d="M85 84Q75.6 84 77.6 94Q80 102 87.4 99.6M109 84Q118.4 84 116.4 94Q114 102 106.6 99.6" fill="none" stroke="${c.mg}" stroke-width="2.2"/><path d="M84 78H110Q110 100 97 105Q84 100 84 78Z" fill="${c.mg}" stroke="#444" stroke-width=".9"/><rect x="95" y="104" width="4" height="9" fill="#999" stroke="#444" stroke-width=".7"/><rect x="87" y="112" width="20" height="6" rx="1.6" fill="#777" stroke="#333" stroke-width=".8"/>`+star4(97,90,5).replace('fill="#fff"','fill="#333"'));
+ART.hand[20]=c=>`<circle cx="97" cy="52" r="18" fill="url(#${c.u}gl)"/>`+HELD(c,`<line x1="97" y1="58" x2="97" y2="138" stroke="#000" stroke-width="5.2" stroke-linecap="round"/><line x1="97" y1="58" x2="97" y2="138" stroke="#e6e6e6" stroke-width="3" stroke-linecap="round"/><path d="M97 40Q98.4 50 108 52Q98.4 54 97 64Q95.6 54 86 52Q95.6 50 97 40Z" fill="#fff" stroke="#999" stroke-width=".7"/>`)+star4(112,38,4)+star4(80,40,3.4,.8)+star4(108,66,2.8,.7);
+
+/* ---------- companions (bottom left corner, 34 x 38 box) ---------- */
+const PET=s=>`<g transform="translate(1 92) scale(1.22)">${s}</g>`;
+ART.pet[1]=c=>PET(`<path d="M27 32Q38 30 34 18" fill="none" stroke="#bbb" stroke-width="5.4" stroke-linecap="round"/><path d="M27 32Q38 30 34 18" fill="none" stroke="#0e0e0e" stroke-width="3.6" stroke-linecap="round"/><ellipse cx="16" cy="29" rx="11" ry="9" fill="#0e0e0e" stroke="#bbb"/><path d="M8 9L9 -1L16 5Z M24 9L23 -1L16 5Z" fill="#0e0e0e" stroke="#bbb" stroke-linejoin="round"/><circle cx="16" cy="14" r="9" fill="#0e0e0e" stroke="#bbb"/><path d="M10 7L10.6 2.4L14 5.4Z M22 7L21.4 2.4L18 5.4Z" fill="#555"/><ellipse cx="12.4" cy="13" rx="2.6" ry="2.8" fill="#fff"/><ellipse cx="19.6" cy="13" rx="2.6" ry="2.8" fill="#fff"/><rect x="11.8" y="11.4" width="1.2" height="3.2" rx=".6" fill="#000"/><rect x="19" y="11.4" width="1.2" height="3.2" rx=".6" fill="#000"/><path d="M14.8 17L17.2 17L16 18.4Z" fill="#ccc"/><path d="M6 16L0 14.6M6 18L0 19.4M26 16L32 14.6M26 18L32 19.4" stroke="#ddd" stroke-width=".6"/>`);
+ART.pet[2]=c=>PET(`<ellipse cx="16" cy="32" rx="11" ry="8" fill="#d8d8d8" stroke="#555"/><ellipse cx="6" cy="14" rx="4" ry="8" transform="rotate(14 6 14)" fill="#444" stroke="#000" stroke-width=".7"/><ellipse cx="26" cy="14" rx="4" ry="8" transform="rotate(-14 26 14)" fill="#444" stroke="#000" stroke-width=".7"/><circle cx="16" cy="16" r="10" fill="#ececec" stroke="#555"/><ellipse cx="16" cy="21" rx="5.6" ry="4" fill="#fff" stroke="#999" stroke-width=".6"/><ellipse cx="16" cy="19" rx="2.4" ry="1.7" fill="#000"/><circle cx="11.6" cy="13.6" r="1.7" fill="#000"/><circle cx="20.4" cy="13.6" r="1.7" fill="#000"/><path d="M16 21V23.6M13.6 23.4Q16 25.6 18.4 23.4" fill="none" stroke="#000" stroke-width=".8"/><path d="M15 24.4Q16 28 17 24.4Z" fill="#999"/>`);
+ART.pet[3]=c=>PET(`<path d="M4 34L-2 40L6 38L10 32Z" fill="#0e0e0e" stroke="#bbb" stroke-width=".8" stroke-linejoin="round"/><path d="M6 34Q2 16 14 11Q24 8 26 18Q26 30 16 36Z" fill="#0e0e0e" stroke="#bbb" stroke-linejoin="round"/><circle cx="22" cy="12" r="7.4" fill="#0e0e0e" stroke="#bbb"/><path d="M28 10L37 12.6L28 15.4Z" fill="#cfcfcf" stroke="#555" stroke-width=".7" stroke-linejoin="round"/><circle cx="23.4" cy="10.6" r="2" fill="#fff"/><circle cx="23.8" cy="10.8" r=".9" fill="#000"/><path d="M10 22Q16 16 22 24M11 27Q16 22 21 29" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/><path d="M13 36V40M18 36V40" stroke="#bbb" stroke-width="1.4"/>`);
+ART.pet[4]=c=>PET(`<path d="M8 12L6 2L14 8Z M24 12L26 2L18 8Z" fill="#9a9a9a" stroke="#444" stroke-linejoin="round"/><ellipse cx="16" cy="24" rx="12" ry="14" fill="#bdbdbd" stroke="#444"/><path d="M8 28Q12 24 16 29Q20 24 24 28M9 33Q13 29 16 34Q19 29 23 33" fill="none" stroke="#777" stroke-width="1"/><circle cx="11" cy="16" r="5.8" fill="#fff" stroke="#444"/><circle cx="21" cy="16" r="5.8" fill="#fff" stroke="#444"/><circle cx="11.4" cy="16.4" r="2.6" fill="#000"/><circle cx="20.6" cy="16.4" r="2.6" fill="#000"/><circle cx="12.2" cy="15.4" r=".9" fill="#fff"/><circle cx="21.4" cy="15.4" r=".9" fill="#fff"/><path d="M14.4 20L17.6 20L16 23.4Z" fill="#555"/>`);
+ART.pet[5]=c=>PET(`<path d="M24 30Q36 32 34 20Q32 26 28 24" fill="${c.dg}" stroke="#ddd" stroke-width=".8"/><path d="M12 22Q4 8 0 6Q4 16 6 20Q-2 18 -4 20Q4 24 10 28Z" fill="${c.dg}" stroke="#ddd" stroke-width=".8" stroke-linejoin="round"/><ellipse cx="15" cy="29" rx="11" ry="8" fill="${c.dg}" stroke="#ddd"/><path d="M8 22L10 17L12 22M14 21L16 16L18 21M20 22L22 17L24 22" fill="#ddd" stroke="#888" stroke-width=".5"/><circle cx="24" cy="15" r="8" fill="${c.dg}" stroke="#ddd"/><path d="M20 9L18 2L24 7Z M27 9L30 3L30 10Z" fill="#fff" stroke="#888" stroke-width=".6" stroke-linejoin="round"/><circle cx="22" cy="14" r="1.8" fill="#fff"/><circle cx="22.4" cy="14.2" r=".8" fill="#000"/><path d="M30 18L37 20L35 15Z" fill="#fff" fill-opacity=".9"/>`);
+ART.pet[6]=c=>PET(`<circle cx="16" cy="22" r="24" fill="url(#${c.u}gl)"/><path d="M12 28Q0 24 -4 8Q6 12 8 20Q4 8 10 0Q12 14 16 22Z M20 28Q32 24 36 8Q26 12 24 20Q28 8 22 0Q20 14 16 22Z" fill="#fff" stroke="#9a9a9a" stroke-width=".7" stroke-linejoin="round"/><path d="M12 34Q8 40 6 44M16 34V42M20 34Q24 40 26 44" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="16" cy="26" rx="6.6" ry="9" fill="#fff" stroke="#9a9a9a" stroke-width=".8"/><circle cx="16" cy="14" r="5.2" fill="#fff" stroke="#9a9a9a" stroke-width=".8"/><path d="M12 10L10 3L15 8Z M16 8L16 1L18 8Z M20 10L22 3L17 8Z" fill="#fff" stroke="#9a9a9a" stroke-width=".6"/><path d="M19 14L25 15.6L19 17Z" fill="#555"/><circle cx="17" cy="13" r="1.1" fill="#000"/>`);
+
+const STATS=[['str','Strength'],['spd','Speed'],['end','Endurance'],['int','Intellect'],['spi','Spirit'],['cha','Charisma'],['dis','Discipline']];
+const SEED=[['bench','Bench Press','w'],['squat','Back Squat','w'],['dead','Deadlift','w'],['ohp','Overhead Press','w'],['row','Barbell Row','w'],['incl','Incline Dumbbell Press','w'],['curl','Dumbbell Curl','w'],['tri','Triceps Pushdown','w'],['lat','Lat Pulldown','w'],['legp','Leg Press','w'],['rdl','Romanian Deadlift','w'],['pull','Pull-Up','b'],['push','Push-Up','b'],['dip','Dips','b'],['sit','Sit-Up','b'],['run','Run','c'],['bike','Bike','c'],['walk','Walk','c'],['sprint','Sprints','c'],['swim','Swim','c']].map(a=>({id:a[0],name:a[1],type:a[2]}));
+
+/* ============ state ============ */
+const DECAY=25;
+function fresh(){
+ const eq={skin:0,hair:1,eyes:0,out:0,head:0,acc:0,hand:0,back:0,pet:0,aur:0,bg:0};
+ const owned=[];SLOTS.forEach(a=>CAT[a[0]].forEach((it,i)=>{if(it[1]===0&&it[2]===0)owned.push(a[0]+':'+i)}));
+ return{start:today(),rp:0,coins:0,streak:0,best:0,lastActive:null,checked:null,days:{},tasks:[],owned:owned,eq:eq,
+  stats:{str:0,spd:0,end:0,int:0,spi:0,cha:0,dis:0},exercises:SEED.map(e=>Object.assign({},e)),workouts:[],wk:null,lastSummary:null,
+  set:{name:'You',canvas:'',gcal:'',strict:false,unit:'lb',rest:90},focus:null,lastSync:null,notice:null};
+}
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.eq){const f=fresh();j.set=Object.assign(f.set,j.set);j.eq=Object.assign(f.eq,j.eq);f.owned.forEach(k=>{if(j.owned.indexOf(k)<0)j.owned.push(k)});j.stats=Object.assign(f.stats,j.stats);if(!j.exercises)j.exercises=f.exercises;if(!j.workouts)j.workouts=[];if(j.wk===undefined)j.wk=null;return j}}catch(e){}return fresh()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let S=load();
+function day(t){if(!S.days[t])S.days[t]={q:{},focus:0,tasks:0,workouts:0,rp:0,perfect:false};return S.days[t]}
+
+function rollover(){
+ const t=today();if(S.checked===t)return;
+ if(S.lastActive){const gap=diffDays(S.lastActive,t);
+  if(gap>1){const missed=Math.min(gap-1,5),loss=missed*DECAY;S.rp=Math.max(0,S.rp-loss);S.streak=0;S.notice='Missed '+(gap-1)+' day'+(gap>2?'s':'')+': −'+loss+' RP. Climb back.'}}
+ S.checked=t;save();
+}
+
+/* ============ toast / overlay ============ */
+let toastT;
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2800)}
+function overlay(html){const o=$('#ov');o.innerHTML=html;o.classList.add('show')}
+$('#ov').addEventListener('click',()=>$('#ov').classList.remove('show'));
+
+/* ============ scoring ============ */
+function gain(rp,coins,why){
+ const t=today(),before=rankInfo(S.rp);
+ if(S.lastActive!==t){S.streak=(S.lastActive&&diffDays(S.lastActive,t)===1)?S.streak+1:1;S.best=Math.max(S.best,S.streak);S.lastActive=t}
+ const mult=1+Math.min(.3,(S.streak-1)*.02),r=Math.round(rp*mult);
+ S.rp+=r;S.coins+=coins;day(t).rp+=r;save();
+ const after=rankInfo(S.rp);
+ if(after.t>before.t){overlay('<div>'+badge(after.t,120)+'<div style="font-size:12px;letter-spacing:.3em;color:#a8a8a8;margin-top:18px">RANK UP</div><div style="font-size:40px;font-weight:800;margin:6px 0">'+after.label+'</div><div class="muted">New cosmetics unlocked. Tap anywhere.</div></div>')}
+ else if(after.label!==before.label){toast('Promoted to '+after.label)}
+ else toast('+'+r+' RP'+(coins?' · +'+coins+' coins':'')+' — '+why);
+}
+
+/* ============ quests ============ */
+const POOL=[
+ {id:'wake',t:'Up before 7:00',rp:20,c:10,st:'dis'},
+ {id:'train',t:'Finish a workout',rp:30,c:15,auto:d=>(d.workouts||0)>=1,hint:'Auto: log it in the Train tab'},
+ {id:'deep',t:'50 min deep focus',rp:35,c:20,st:'int',auto:d=>d.focus>=50,hint:'Auto: use the focus timer'},
+ {id:'study',t:'90 min of focused study',rp:40,c:20,st:'int',auto:d=>d.focus>=90,hint:'Auto: use the focus timer'},
+ {id:'top3',t:'Finish 3 tasks',rp:35,c:20,st:'dis',auto:d=>d.tasks>=3,hint:'Auto: check off tasks'},
+ {id:'phone',t:'1 hour fully phone-free',rp:20,c:10,st:'dis'},
+ {id:'read',t:'Read 20 pages',rp:20,c:10,st:'int'},
+ {id:'reflect',t:'10 min prayer or reflection',rp:20,c:10,st:'spi'},
+ {id:'grat',t:'Write 3 things you are grateful for',rp:20,c:10,st:'spi'},
+ {id:'serve',t:'Help someone without being asked',rp:25,c:12,st:'spi'},
+ {id:'reach',t:'Message or call someone you care about',rp:20,c:10,st:'cha'},
+ {id:'talk',t:'Start a conversation with someone new',rp:25,c:12,st:'cha'},
+ {id:'lift',t:'Encourage or compliment someone',rp:15,c:8,st:'cha'},
+ {id:'run',t:'Run or sprint intervals',rp:30,c:15,st:'spd'},
+ {id:'walk',t:'Walk 30 minutes outside',rp:20,c:10,st:'end'},
+ {id:'bed',t:'Lights out by 10:30',rp:25,c:12,st:'dis'},
+ {id:'space',t:'Make bed, clear your space',rp:15,c:8,st:'dis'},
+ {id:'plan',t:'Plan tomorrow: top 3 priorities',rp:20,c:10,st:'int'},
+ {id:'water',t:'Drink 80+ oz water',rp:10,c:5,st:'end'}
+];
+function questsToday(){
+ const r=rng('q'+today()),a=POOL.slice();
+ for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));const x=a[i];a[i]=a[j];a[j]=x}
+ let pick=a.slice(0,5);
+ if(!pick.some(q=>q.auto)){pick[4]=POOL.find(q=>q.id==='top3')}
+ return pick;
+}
+function completeQuest(q,silent){
+ const d=day(today());if(d.q[q.id])return;d.q[q.id]=true;gain(q.rp,q.c,q.t);addStat(q.st,q.rp);
+ const qs=questsToday();
+ if(!d.perfect&&qs.every(x=>d.q[x.id])){d.perfect=true;gain(50,25,'Perfect day bonus')}
+}
+function checkAuto(){const d=day(today());questsToday().forEach(q=>{if(q.auto&&!d.q[q.id]&&q.auto(d))completeQuest(q)})}
+
+/* ============ focus ============ */
+function startFocus(m){S.focus={start:Date.now(),end:Date.now()+m*60000,mins:m};save();render()}
+function finishFocus(){
+ const f=S.focus;if(!f)return;S.focus=null;const d=day(today());d.focus+=f.mins;addStat('int',f.mins*.6);addStat('dis',f.mins*.3);save();
+ gain(Math.round(f.mins*.8),Math.round(f.mins/5),f.mins+' min locked in');checkAuto();render();
+}
+function cancelFocus(msg){S.focus=null;save();toast(msg||'Session cancelled. No reward.');render()}
+let hiddenAt=0;
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){hiddenAt=Date.now();return}
+ const away=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0;
+ if(S.focus&&S.set.strict&&away>45000)cancelFocus('You left the app. Session failed.');
+ else if(S.focus&&Date.now()>=S.focus.end)finishFocus();
+});
+setInterval(()=>{
+ if(!S.focus)return;
+ if(Date.now()>=S.focus.end){finishFocus();return}
+ const e=$('#timer');if(e){const s=Math.ceil((S.focus.end-Date.now())/1000);e.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+},1000);
+
+/* ============ tasks + calendar sync ============ */
+function addTask(title,due,src,uidv,time){
+ S.tasks.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:title,due:due,time:time||'',src:src,uid:uidv||'',done:false,rewarded:false});
+}
+function toggleTask(id){
+ const t=S.tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;
+ if(t.done&&!t.rewarded){t.rewarded=true;const d=day(today());d.tasks++;gain(t.src==='manual'?12:18,4,'Task done');addStat('dis',4);if(t.src!=='manual')addStat('int',6);checkAuto()}
+ save();render();
+}
+function parseICS(txt){
+ txt=txt.replace(/\r?\n[ \t]/g,'');const out=[];
+ txt.split('BEGIN:VEVENT').slice(1).forEach(b=>{
+  b=b.split('END:VEVENT')[0];
+  const get=k=>{const m=b.match(new RegExp('^'+k+'[^:\\r\\n]*:(.*)$','mi'));return m?m[1].replace(/\r/g,'').trim():''};
+  const sum=get('SUMMARY').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\n/gi,' ');
+  const m=get('DTSTART').match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?/);if(!m||!sum)return;
+  let d;if(m[4]){d=m[7]?new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6])):new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6])}else d=new Date(+m[1],+m[2]-1,+m[3]);
+  out.push({title:sum,due:fmt(d),time:m[4]?String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'):'',uid:get('UID')});
+ });
+ return out;
+}
+function ingest(txt,src){
+ const lo=addDays(today(),-3),hi=addDays(today(),45);let n=0;
+ parseICS(txt).forEach(e=>{
+  if(e.due<lo||e.due>hi)return;
+  if(S.tasks.some(t=>t.uid&&t.uid===e.uid&&t.src===src))return;
+  addTask(e.title,e.due,src,e.uid,e.time);n++;
+ });
+ return n;
+}
+async function syncAll(){
+ const srcs=[['canvas',S.set.canvas],['gcal',S.set.gcal]].filter(x=>x[1]);
+ if(!srcs.length){toast('Add your feed URLs in Settings first');tab='set';render();return}
+ let added=0;const bad=[];toast('Syncing…');
+ for(const p of srcs){try{const r=await fetch(p[1].replace(/^webcal:/i,'https:'));if(!r.ok)throw new Error(r.status);added+=ingest(await r.text(),p[0])}catch(e){bad.push(p[0])}}
+ S.lastSync=new Date().toLocaleString();save();render();
+ toast(bad.length?('Failed: '+bad.join(', ')+'. Browser CORS? Works in the iPhone app, or import an .ics file.'):('Synced. '+added+' new item'+(added===1?'':'s')));
+}
+$('#icsFile').addEventListener('change',e=>{
+ const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+ rd.onload=()=>{const n=ingest(String(rd.result),'canvas');save();render();toast('Imported '+n+' item'+(n===1?'':'s'))};rd.readAsText(f);e.target.value='';
+});
+
+/* ============ views ============ */
+let tab='home',wslot='skin',pv=null,taskFilter='open';
+const ICON={
+ home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',
+ train:'<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>',
+ task:'<path d="M5 12l4 4 10-10"/><rect x="3" y="3" width="18" height="18" rx="4"/>',
+ lb:'<path d="M6 21V11M12 21V4M18 21V14"/>',
+ av:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 4-7 8-7s8 2 8 7"/>',
+ set:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'
+};
+function renderNav(){
+ const tabs=[['home','Home'],['train','Train'],['task','Tasks'],['lb','Ladder'],['av','Avatar'],['set','Settings']];
+ $('#nav').innerHTML=tabs.map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ICON[t[0]]+'</svg>'+t[1]+'</button>').join('');
+}
+function vHome(){
+ const r=rankInfo(S.rp),qs=questsToday(),d=day(today()),done=qs.filter(q=>d.q[q.id]).length;
+ const mult=Math.round(Math.min(.3,Math.max(0,S.streak-1)*.02)*100);
+ let h='<div class="card"><div class="row">'+avatar(S.eq,92)+'<div class="grow"><div class="muted">'+esc(S.set.name)+'</div><div class="row" style="gap:8px">'+badge(r.t,34)+'<div class="big">'+r.label+'</div></div>'
+  +'<div class="bar"><i style="width:'+r.pct+'%"></i></div><div class="tiny">'+(r.t===9?'You are enlightened.':r.toNext+' RP to '+r.nextLabel)+'</div></div></div>'
+  +'<div class="chips"><span class="chip">'+S.rp.toLocaleString()+' RP</span><span class="chip">🔥 '+S.streak+' day streak'+(mult?' (+'+mult+'%)':'')+'</span><span class="chip">◎ '+S.coins+' coins</span></div></div>';
+ h+=statsCard();
+ // focus
+ h+='<h2>Focus session</h2><div class="card">';
+ if(S.focus){const s=Math.max(0,Math.ceil((S.focus.end-Date.now())/1000));
+  h+='<div class="muted" style="text-align:center">Locked in · '+S.focus.mins+' min</div><div class="timer" id="timer">'+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')+'</div><button class="ghost full" data-a="focusCancel">Give up</button>'}
+ else h+='<div class="muted" style="margin-bottom:10px">Pick a length. Finishing pays RP and coins, and counts toward quests.</div><div class="seg"><button data-a="focus" data-v="25">25 min</button><button data-a="focus" data-v="50">50 min</button><button data-a="focus" data-v="90">90 min</button></div>';
+ h+='</div>';
+ h+='<h2>Today\'s quests · '+done+'/5</h2><div class="card" style="padding:4px 14px">'+qs.map(q=>{const dn=d.q[q.id];
+  return '<div class="q'+(dn?' done':'')+'">'+(q.auto?'<div class="ck">'+(dn?'✓':'')+'</div>':'<button class="ck" data-a="quest" data-v="'+q.id+'">'+(dn?'✓':'')+'</button>')
+   +'<div class="grow"><div class="qt">'+q.t+(q.auto?'<span class="tag">AUTO</span>':'')+'</div>'+(q.auto&&!dn?'<div class="t-sub">'+q.hint+'</div>':'')+'</div><div class="pts">+'+q.rp+' RP</div></div>'}).join('')
+  +'</div><div class="tiny" style="margin:-4px 4px 0">Clear all 5 for a +50 RP perfect-day bonus. Skip a full day and you lose '+DECAY+' RP.</div>';
+ return h;
+}
+function dueLabel(t){
+ const dt=today();const diff=diffDays(dt,t.due);
+ let s=diff===0?'Today':diff===1?'Tomorrow':diff<0?Math.abs(diff)+'d ago':pd(t.due).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+ return s+(t.time?' · '+t.time:'');
+}
+function vTasks(){
+ const dt=today();
+ let h='<h2>Add task</h2><div class="card"><input type="text" id="nt" placeholder="What needs doing?" maxlength="120"><div class="row" style="margin-top:8px"><input type="date" id="nd" value="'+dt+'"><button data-a="taskAdd">Add</button></div></div>';
+ h+='<h2>Calendar sync</h2><div class="card"><div class="row"><button class="grow" data-a="sync">Sync Canvas + Google</button><button class="ghost" data-a="ics">Import .ics</button></div><div class="tiny" style="margin-top:8px">'+(S.lastSync?'Last sync: '+S.lastSync:'Add your feed URLs in Settings.')+'</div></div>';
+ const open=S.tasks.filter(t=>!t.done).sort((a,b)=>(a.due+a.time)<(b.due+b.time)?-1:1),done=S.tasks.filter(t=>t.done).slice(-8);
+ const row=t=>'<div class="q'+(t.done?' done':'')+'"><button class="ck" data-a="task" data-v="'+t.id+'">'+(t.done?'✓':'')+'</button><div class="grow"><div class="qt">'+esc(t.title)+(t.src!=='manual'?'<span class="tag">'+(t.src==='canvas'?'CANVAS':'GCAL')+'</span>':'')+(!t.done&&t.due<dt?'<span class="tag inv">OVERDUE</span>':'')+'</div><div class="t-sub">'+dueLabel(t)+'</div></div><button class="ghost sm" data-a="taskDel" data-v="'+t.id+'">✕</button></div>';
+ h+='<h2>Open · '+open.length+'</h2><div class="card" style="padding:4px 14px">'+(open.length?open.map(row).join(''):'<div class="muted" style="padding:14px 0">Nothing open. Add a task or sync.</div>')+'</div>';
+ if(done.length)h+='<h2>Recently done</h2><div class="card" style="padding:4px 14px">'+done.map(row).join('')+'</div>';
+ return h;
+}
+function owns(s,i){return S.owned.indexOf(s+':'+i)>=0}
+function vWard(){
+ const eq=pv||S.eq,r=rankInfo(S.rp);
+ let h='<div class="card" style="text-align:center"><div style="display:inline-block">'+avatar(eq,170)+'</div><div class="row" style="justify-content:center;margin-top:10px"><span class="chip">◎ '+S.coins+' coins</span><span class="chip">'+r.label+'</span></div></div>';
+ h+='<div class="slots">'+SLOTS.map(s=>'<button data-a="slot" data-v="'+s[0]+'" class="'+(wslot===s[0]?'on':'')+'">'+s[1]+'</button>').join('')+'</div><div class="grid">';
+ h+=CAT[wslot].map((it,i)=>{
+  const own=owns(wslot,i),lock=it[2]>r.t,sel=eq[wslot]===i;
+  const sub=own?(S.eq[wslot]===i?'Equipped':'Owned'):lock?'🔒 '+RANKS[it[2]].n:'◎ '+it[1];
+  return '<button class="item'+(sel?' sel':'')+(lock&&!own?' lock':'')+'" data-a="pick" data-v="'+i+'"><div>'+it[0]+'</div><div class="tiny" style="margin-top:4px">'+sub+'</div></button>'}).join('');
+ h+='</div>';
+ if(pv){const i=pv[wslot],it=CAT[wslot][i],own=owns(wslot,i),lock=it[2]>r.t;
+  h+='<div style="margin-top:14px;display:flex;gap:8px">';
+  if(own)h+='<button class="full" data-a="equip">Equip '+it[0]+'</button>';
+  else if(lock)h+='<button class="full" disabled>Reach '+RANKS[it[2]].n+' to unlock</button>';
+  else h+='<button class="full" data-a="buy" '+(S.coins<it[1]?'disabled':'')+'>Buy for ◎ '+it[1]+'</button>';
+  h+='<button class="ghost" data-a="resetPv">Reset</button></div>';}
+ else h+='<div class="tiny" style="margin:12px 4px">Tap an item to preview it on your avatar.</div>';
+ return h;
+}
+function vSet(){
+ return '<h2>Profile</h2><div class="card"><div class="muted" style="margin-bottom:6px">Display name</div><input type="text" id="sn" maxlength="16" value="'+esc(S.set.name)+'" data-c="name"></div>'
+ +'<h2>Calendar feeds</h2><div class="card"><div class="muted" style="margin-bottom:6px">Canvas calendar feed URL</div><input type="url" data-c="canvas" placeholder="https://…instructure.com/feeds/calendars/user_….ics" value="'+esc(S.set.canvas)+'">'
+ +'<div class="muted" style="margin:12px 0 6px">Google Calendar secret iCal address</div><input type="url" data-c="gcal" placeholder="https://calendar.google.com/…/basic.ics" value="'+esc(S.set.gcal)+'">'
+ +'<div class="tiny" style="margin-top:10px">Canvas: Calendar → Calendar Feed. Google: Calendar settings → Integrate calendar → Secret address in iCal format. These links are private. Anyone with one can read your calendar.</div></div>'
+ +'<h2>Focus</h2><div class="card"><label class="sw"><span>Strict mode: leaving the app fails the session<div class="tiny">Screen lock also counts as leaving.</div></span><input type="checkbox" data-c="strict" '+(S.set.strict?'checked':'')+'></label></div>'
+ +workoutSettings()+'<h2>Data</h2><div class="card"><div class="tiny" style="margin-bottom:10px">Everything is stored on this device only. Best streak: '+S.best+' days.</div><button class="ghost full" data-a="reset">Reset all progress</button></div>';
+}
+function render(){
+ renderNav();
+ const v={home:vHome,train:vTrain,task:vTasks,lb:vLadder,av:vWard,set:vSet}[tab]();
+ const y=window.scrollY;$('#app').innerHTML=v;window.scrollTo(0,y);
+}
+
+/* ============ events ============ */
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;if(extraClick(a,v,b))return;
+ if(a==='tab'){tab=v;if(v!=='av')pv=null;window.scrollTo(0,0);render()}
+ else if(a==='quest'){const q=POOL.find(x=>x.id===v);completeQuest(q);render()}
+ else if(a==='focus')startFocus(+v);
+ else if(a==='focusCancel')cancelFocus();
+ else if(a==='task')toggleTask(v);
+ else if(a==='taskDel'){S.tasks=S.tasks.filter(t=>t.id!==v);save();render()}
+ else if(a==='taskAdd'){const t=$('#nt').value.trim();if(!t){toast('Type a task first');return}addTask(t,$('#nd').value||today(),'manual');save();render()}
+ else if(a==='sync')syncAll();
+ else if(a==='ics')$('#icsFile').click();
+ else if(a==='slot'){wslot=v;render()}
+ else if(a==='pick'){pv=Object.assign({},pv||S.eq);pv[wslot]=+v;render()}
+ else if(a==='resetPv'){pv=null;render()}
+ else if(a==='equip'){S.eq=Object.assign({},pv);pv=null;save();render();toast('Equipped')}
+ else if(a==='buy'){const i=pv[wslot],it=CAT[wslot][i];if(S.coins<it[1])return;S.coins-=it[1];S.owned.push(wslot+':'+i);S.eq=Object.assign({},pv);pv=null;save();render();toast('Purchased '+it[0])}
+ else if(a==='reset'){if(confirm('Erase all progress? This cannot be undone.')){localStorage.removeItem(KEY);S=load();rollover();pv=null;tab='home';render()}}
+});
+document.addEventListener('change',e=>{
+ const c=e.target.dataset&&e.target.dataset.c;if(!c)return;
+ if(c==='strict')S.set.strict=e.target.checked;else S.set[c]=e.target.value.trim()||(c==='name'?'You':'');
+ save();
+});
+
+/* ============ stats ============ */
+const lvl=xp=>Math.floor(Math.sqrt((xp||0)/6));
+const lvlXp=l=>6*l*l;
+function addStat(k,xp){
+ if(!k||!(xp>0))return;xp=Math.round(xp);if(xp<=0)return;
+ const before=lvl(S.stats[k]);S.stats[k]=(S.stats[k]||0)+xp;const after=lvl(S.stats[k]);
+ if(after>before){const nm=STATS.find(s=>s[0]===k)[1];setTimeout(()=>toast(nm+' reached Lv '+after),1900)}
+}
+function radar(){
+ const N=STATS.length,cx=150,cy=125,R=72,lv=STATS.map(k=>lvl(S.stats[k[0]]));
+ const M=Math.max(10,Math.ceil((Math.max.apply(null,lv)+1)/5)*5);
+ const ang=i=>-Math.PI/2+i*2*Math.PI/N;
+ const pt=(i,v)=>{const r=R*v/M;return[cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i))]};
+ const pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+ let s='<svg viewBox="0 0 300 250" width="100%" style="max-width:360px;display:block;margin:0 auto" role="img" aria-label="Stats radar chart">';
+ [.25,.5,.75,1].forEach(f=>{s+='<polygon points="'+pts(STATS.map((_,i)=>pt(i,M*f)))+'" fill="none" stroke="#fff" stroke-opacity="'+(f===1?.38:.14)+'"/>'});
+ STATS.forEach((_,i)=>{const p=pt(i,M);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0].toFixed(1)+'" y2="'+p[1].toFixed(1)+'" stroke="#fff" stroke-opacity=".14"/>'});
+ s+='<polygon points="'+pts(lv.map((v,i)=>pt(i,v)))+'" fill="#fff" fill-opacity=".22" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>';
+ lv.forEach((v,i)=>{const p=pt(i,v);s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3.4" fill="#fff"/>'});
+ STATS.forEach((k,i)=>{const a=ang(i),lx=cx+(R+16)*Math.cos(a),ly=cy+(R+16)*Math.sin(a),c=Math.cos(a),anc=Math.abs(c)<.3?'middle':c>0?'start':'end',dy=Math.sin(a)>.5?10:Math.sin(a)<-.5?-8:0;
+  s+='<text x="'+lx.toFixed(1)+'" y="'+(ly+dy).toFixed(1)+'" fill="#fff" font-size="11.5" font-weight="700" text-anchor="'+anc+'" font-family="Helvetica,Arial,sans-serif">'+k[1]+'</text><text x="'+lx.toFixed(1)+'" y="'+(ly+dy+12).toFixed(1)+'" fill="#a8a8a8" font-size="10" text-anchor="'+anc+'" font-family="Helvetica,Arial,sans-serif">Lv '+lv[i]+'</text>'});
+ return s+'</svg>';
+}
+function statsCard(){
+ let h='<h2>Stats</h2><div class="card">'+radar()+'<div class="grid2" style="margin-top:8px">';
+ STATS.forEach(k=>{const xp=S.stats[k[0]]||0,l=lvl(xp),lo=lvlXp(l),hi=lvlXp(l+1);
+  h+='<div><div class="row" style="justify-content:space-between"><span style="font-weight:700;font-size:13px">'+k[1]+'</span><span class="muted">Lv '+l+'</span></div><div class="bar"><i style="width:'+(((xp-lo)/(hi-lo))*100).toFixed(0)+'%"></i></div></div>'});
+ return h+'</div><div class="tiny" style="margin-top:10px">Strength, Speed and Endurance grow from logged workouts. Intellect from focus time and study. Spirit and Charisma from quests. Discipline from everything you finish.</div></div>';
+}
+
+/* ============ workouts ============ */
+const TYPE_LABEL={w:'Weights',b:'Bodyweight',c:'Cardio'};
+let delArm=null,discardArm=false;
+const unitW=()=>S.set.unit==='kg'?'kg':'lb';
+const unitD=()=>S.set.unit==='kg'?'km':'mi';
+const e1=(w,r)=>(+w||0)*(1+(+r||0)/30);
+const mmss=sec=>{sec=Math.max(0,Math.floor(sec));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')};
+const shortDate=ds=>pd(ds).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+function exOf(id){return S.exercises.find(e=>e.id===id)}
+function lastOf(id){for(let i=S.workouts.length-1;i>=0;i--){const it=S.workouts[i].items.find(x=>x.ex===id);if(it)return{date:S.workouts[i].date,sets:it.sets}}return null}
+function bestOf(id,type){let b=0;S.workouts.forEach(w=>w.items.forEach(it=>{if(it.ex!==id)return;it.sets.forEach(s=>{const v=type==='w'?e1(s.w,s.r):type==='b'?(+s.r||0):0;if(v>b)b=v})}));return b}
+function fmtSet(type,s){return type==='w'?(s.w+'×'+s.r):type==='b'?String(s.r):(s.m+' min'+(s.d?' · '+s.d+' '+unitD():''))}
+function blank(type,p){return{w:p&&p.w!=null?String(p.w):'',r:p&&p.r!=null?String(p.r):'',m:p&&p.m!=null?String(p.m):'',d:p&&p.d!=null?String(p.d):'',done:false}}
+function startWorkout(items){S.wk={start:Date.now(),items:items||[],auto:true,rest:null,restLen:parseInt(S.set.rest,10)||90,pick:false};save();render()}
+function addExToWk(id){
+ const ex=exOf(id);if(!ex||!S.wk)return;const prev=lastOf(id);
+ S.wk.items.push({ex:id,n:ex.name,type:ex.type,sets:prev?prev.sets.map(s=>blank(ex.type,s)):[blank(ex.type)]});
+ S.wk.pick=false;save();render();
+}
+function repeatWorkout(id){
+ const rec=S.workouts.find(w=>w.id===id);if(!rec)return;
+ startWorkout(rec.items.map(it=>{const prev=lastOf(it.ex)||{sets:it.sets};return{ex:it.ex,n:it.n,type:it.type,sets:prev.sets.map(s=>blank(it.type,s))}}));
+}
+function setValid(type,s){return type==='w'?(+s.r>0&&s.w!==''&&+s.w>=0):type==='b'?(+s.r>0):(+s.m>0||+s.d>0)}
+function toggleSet(i,j){
+ const wk=S.wk,it=wk.items[i],s=it.sets[j];
+ if(!s.done){
+  if(!setValid(it.type,s)){toast(it.type==='w'?'Enter weight and reps':it.type==='b'?'Enter reps':'Enter minutes or distance');return}
+  s.done=true;if(wk.auto&&wk.restLen>0)wk.rest={end:Date.now()+wk.restLen*1000,total:wk.restLen};
+ }else s.done=false;
+ save();render();
+}
+function newExercise(name,type){
+ name=(name||'').trim();if(!name){toast('Name the exercise first');return null}
+ if(S.exercises.some(e=>e.name.toLowerCase()===name.toLowerCase())){toast('That exercise already exists');return null}
+ const ex={id:'x'+Date.now().toString(36),name:name.slice(0,40),type:type||'w'};S.exercises.push(ex);save();return ex;
+}
+function finishWorkout(){
+ const wk=S.wk;if(!wk)return;
+ const items=wk.items.map(it=>({ex:it.ex,n:it.n,type:it.type,sets:it.sets.filter(s=>s.done).map(s=>({w:+s.w||0,r:+s.r||0,m:+s.m||0,d:+s.d||0}))})).filter(it=>it.sets.length);
+ if(!items.length){toast('Log at least one set first');return}
+ const before=Object.assign({},S.stats),prs=[];let vol=0,sets=0;const kg=S.set.unit==='kg';
+ items.forEach(it=>{
+  const prior=bestOf(it.ex,it.type);let top=0;
+  it.sets.forEach(s=>{sets++;
+   if(it.type==='w'){const v=s.w*s.r;vol+=v;addStat('str',Math.max(1,Math.round(v*(kg?2.2:1)/100)));addStat('end',1);top=Math.max(top,e1(s.w,s.r))}
+   else if(it.type==='b'){addStat('str',Math.round(s.r/4));addStat('end',Math.round(s.r/4));top=Math.max(top,s.r)}
+   else{addStat('end',Math.round(s.m));if(s.d>0&&s.m>0){const sp=s.d/(s.m/60);addStat('spd',Math.max(1,Math.round(sp*s.d)))}}
+  });
+  if(prior>0&&top>prior)prs.push(it.n);
+ });
+ const d=day(today()),first=!(d.workouts>0);
+ const rec={id:'w'+Date.now().toString(36),date:today(),start:wk.start,end:Date.now(),items:items};
+ S.workouts.push(rec);d.workouts=(d.workouts||0)+1;
+ const gains=STATS.map(k=>[k[1],(S.stats[k[0]]||0)-(before[k[0]]||0)]).filter(g=>g[1]>0);
+ S.lastSummary={date:today(),dur:Math.round((rec.end-rec.start)/60000),sets:sets,vol:Math.round(vol),prs:prs,gains:gains,first:first};
+ S.wk=null;save();
+ const prBonus=Math.min(3,prs.length)*10;
+ if(first)gain(25+Math.min(40,sets*3)+prBonus,12+Math.min(20,sets),'Workout complete');else gain(8+prBonus,3,'Extra workout');
+ checkAuto();render();
+}
+function sumCard(){
+ const m=S.lastSummary;
+ return '<h2>Last workout</h2><div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="big">'+m.sets+' sets</div><div class="muted">'+m.dur+' min'+(m.vol?' · '+m.vol.toLocaleString()+' '+unitW()+' volume':'')+'</div></div><button class="ghost sm" data-a="sumClose">Dismiss</button></div>'
+  +(m.prs.length?'<div class="chips">'+m.prs.map(p=>'<span class="chip">PR · '+esc(p)+'</span>').join('')+'</div>':'')
+  +(m.gains.length?'<div class="tiny" style="margin-top:10px">'+m.gains.map(g=>'+'+g[1]+' '+g[0]).join(' · ')+'</div>':'')
+  +(m.first?'':'<div class="tiny" style="margin-top:6px">Only the first workout of the day pays full RP.</div>')+'</div>';
+}
+function setRow(it,i,j){
+ const s=it.sets[j],prev=lastOf(it.ex),ps=prev&&prev.sets[j],t=it.type,done=s.done;
+ const inp=(f,ph,step)=>'<input type="number" inputmode="decimal" step="'+(step||'any')+'" min="0" placeholder="'+esc(ph)+'" value="'+esc(s[f])+'" data-wi="'+i+'" data-ws="'+j+'" data-wf="'+f+'" aria-label="'+f+'">';
+ let cells='';
+ if(t==='w')cells=inp('w',ps?ps.w:unitW())+inp('r',ps?ps.r:'reps','1');
+ else if(t==='b')cells=inp('r',ps?ps.r:'reps','1');
+ else cells=inp('m',ps?ps.m:'min')+inp('d',ps?ps.d:unitD());
+ let pr='';
+ if(done&&t!=='c'){const pb=bestOf(it.ex,t),v=t==='w'?e1(s.w,s.r):+s.r;if(pb>0&&v>pb)pr='<span class="tag inv">PR</span>'}
+ return '<div class="setrow '+t+(done?' done':'')+'"><div class="sn">'+(j+1)+pr+'</div>'+cells+'<button class="ck" data-a="wDone" data-i="'+i+'" data-s="'+j+'" aria-label="Mark set done">'+(done?'✓':'')+'</button><button class="ghost sm" data-a="wDelSet" data-i="'+i+'" data-s="'+j+'" aria-label="Delete set">✕</button></div>';
+}
+function activeWorkout(){
+ const wk=S.wk;let h='';
+ h+='<h2>Workout in progress</h2><div class="card"><div class="row"><div class="grow"><div class="muted">Elapsed</div><div class="big" id="wkTimer">'+mmss((Date.now()-wk.start)/1000)+'</div></div><button data-a="wFinish">Finish</button><button class="ghost" data-a="wDiscard">'+(discardArm?'Tap to discard':'Discard')+'</button></div></div>';
+ if(wk.rest){h+='<div class="card"><div class="muted" style="text-align:center">Rest</div><div class="timer" id="rest">'+mmss((wk.rest.end-Date.now())/1000)+'</div><div class="seg"><button class="ghost" data-a="restAdd">+15s</button><button data-a="restSkip">Skip rest</button></div></div>'}
+ else h+='<div class="card"><div class="row" style="flex-wrap:wrap"><span class="muted">Rest timer</span>'+[60,90,120,180].map(n=>'<button class="sm '+(wk.restLen===n?'':'ghost')+'" data-a="restLen" data-v="'+n+'">'+n+'s</button>').join('')+'</div><div class="row" style="margin-top:10px"><label class="sw grow"><span>Start rest automatically after each set</span><input type="checkbox" data-a="restAuto" '+(wk.auto?'checked':'')+'></label></div><button class="ghost full sm" style="margin-top:10px" data-a="restStart">Take a break now</button></div>';
+ wk.items.forEach((it,i)=>{
+  const prev=lastOf(it.ex);
+  h+='<div class="card"><div class="row" style="align-items:flex-start"><div class="grow"><div style="font-weight:800;font-size:16px">'+esc(it.n)+'</div><div class="t-sub">'+(prev?'Last '+shortDate(prev.date)+': '+esc(prev.sets.map(s=>fmtSet(it.type,s)).join(', ')):'First time. Nothing to compare yet.')+'</div></div><button class="ghost sm" data-a="wRemoveEx" data-i="'+i+'" aria-label="Remove exercise">✕</button></div><div style="margin-top:10px">'
+   +'<div class="setrow head '+it.type+'"><div></div>'+(it.type==='w'?'<div class="tiny c">'+unitW()+'</div><div class="tiny c">reps</div>':it.type==='b'?'<div class="tiny c">reps</div>':'<div class="tiny c">min</div><div class="tiny c">'+unitD()+'</div>')+'<div></div><div></div></div>'
+   +it.sets.map((s,j)=>setRow(it,i,j)).join('')+'<button class="ghost sm full" data-a="wAddSet" data-i="'+i+'">+ Add set</button></div></div>';
+ });
+ if(wk.pick){
+  h+='<div class="card"><input type="text" id="px" placeholder="Search exercises" autocomplete="off"><div style="margin-top:10px;max-height:260px;overflow:auto" id="plist">'+S.exercises.map(e=>'<button class="item" style="width:100%;text-align:left;margin-bottom:6px" data-a="wPick" data-v="'+e.id+'" data-n="'+esc(e.name.toLowerCase())+'">'+esc(e.name)+' <span class="tiny">'+TYPE_LABEL[e.type]+'</span></button>').join('')+'</div>'
+   +'<div class="muted" style="margin:12px 0 6px">Not listed? Create it</div><input type="text" id="pxn" placeholder="Exercise name" maxlength="40"><div class="row" style="margin-top:8px"><select id="pxt"><option value="w">Weights</option><option value="b">Bodyweight</option><option value="c">Cardio</option></select><button data-a="wNewPick">Add</button></div><button class="ghost full sm" style="margin-top:10px" data-a="wPickClose">Close</button></div>';
+ }else h+='<button class="full" data-a="wAddEx">+ Add exercise</button>';
+ return h;
+}
+function vTrain(){
+ const wk=S.wk;let h='';
+ if(S.lastSummary&&!wk)h+=sumCard();
+ if(wk)h+=activeWorkout();
+ else{
+  const last=S.workouts[S.workouts.length-1];
+  h+='<h2>Train</h2><div class="card"><div class="muted" style="margin-bottom:12px">Log sets with last time\'s numbers filled in. Finishing a workout completes your Train quest.</div><button class="full" data-a="wStart">Start workout</button>'+(last?'<button class="ghost full" style="margin-top:8px" data-a="wRepeat" data-v="'+last.id+'">Repeat last: '+esc(last.items.slice(0,2).map(x=>x.n).join(', ')+(last.items.length>2?'…':''))+'</button>':'')+'</div>';
+ }
+ const hist=S.workouts.slice(-8).reverse();
+ if(hist.length){
+  h+='<h2>History</h2><div class="card" style="padding:4px 14px">'+hist.map(w=>{let sets=0,vol=0;w.items.forEach(it=>it.sets.forEach(s=>{sets++;if(it.type==='w')vol+=s.w*s.r}));
+   return '<div class="q"><div class="grow"><div class="qt">'+shortDate(w.date)+' · '+w.items.length+' exercise'+(w.items.length===1?'':'s')+'</div><div class="t-sub">'+sets+' sets'+(vol?' · '+Math.round(vol).toLocaleString()+' '+unitW():'')+'</div><div class="t-sub">'+esc(w.items.map(x=>x.n).join(', '))+'</div></div>'+(wk?'':'<button class="ghost sm" data-a="wRepeat" data-v="'+w.id+'">Repeat</button>')+'<button class="ghost sm" data-a="wDelHist" data-v="'+w.id+'" aria-label="Delete workout">'+(delArm===w.id?'Sure?':'✕')+'</button></div>'}).join('')+'</div>';
+ }
+ h+='<h2>Exercise library</h2><div class="card" style="padding:4px 14px">'+S.exercises.map(e=>{const b=bestOf(e.id,e.type);
+  return '<div class="q"><div class="grow"><div class="qt">'+esc(e.name)+'</div><div class="t-sub">'+TYPE_LABEL[e.type]+(b?(e.type==='w'?' · best est. 1RM '+Math.round(b)+' '+unitW():e.type==='b'?' · best '+b+' reps':''):'')+'</div></div><button class="ghost sm" data-a="exDel" data-v="'+e.id+'" aria-label="Remove from library">✕</button></div>'}).join('')+'</div>'
+  +'<div class="card"><div class="muted" style="margin-bottom:8px">Add an exercise</div><input type="text" id="nxn" placeholder="Exercise name" maxlength="40"><div class="row" style="margin-top:8px"><select id="nxt"><option value="w">Weights</option><option value="b">Bodyweight</option><option value="c">Cardio</option></select><button data-a="exNew">Add</button></div></div>';
+ return h;
+}
+
+/* ============ ladder with a large field of rivals ============ */
+const HAND_NAMES=['kairo','vex.0','Marcus_V','ironwill','n0ctis','dawnbreak','Sable','halcyon','Orion7','stoic_sam','monk_mode','zenith','Atlas','ember','quietstorm','Lucien','jovian','Rook','neo.ascent','Thorne','Mika','ashen','Cato','prism','vigil','Dax','solace','Wren'];
+const PRE=['iron','stoic','quiet','dawn','night','steel','calm','sharp','lone','rise','grind','focus','zen','north','ash','ember','stone','frost','solar','lunar','apex','vigil','oath','forge','cairn','drift','hollow','sable','onyx','pale','wild','true','still','bright','dusk','raven','crown','gold','storm','arc'];
+const SUF=['wolf','monk','hawk','will','mind','path','oak','blade','rook','fox','vow','ward','crest','pilot','smith','ranger','scholar','knight','cadet','runner','lifter','pilgrim','sage','archer','guard','mason','herald','nomad','tide','peak'];
+let NAMES_CACHE=null;
+function allNames(){
+ if(NAMES_CACHE)return NAMES_CACHE;
+ const seen={},out=[];HAND_NAMES.forEach(n=>{seen[n.toLowerCase()]=1;out.push(n)});
+ const cap=s=>s[0].toUpperCase()+s.slice(1);
+ for(let i=0;out.length<128;i++){
+  const r=rng('gen'+i),p=PRE[Math.floor(r()*PRE.length)],s=SUF[Math.floor(r()*SUF.length)],v=Math.floor(r()*6),n2=Math.floor(r()*90)+10;
+  let n=v===0?p+s:v===1?p+'_'+s:v===2?cap(p)+cap(s):v===3?p+'.'+s:v===4?p+s+n2:cap(p)+'_'+cap(s);
+  if(seen[n.toLowerCase()])continue;seen[n.toLowerCase()]=1;out.push(n);
+ }
+ const r=rng('shuffle');for(let i=out.length-1;i>0;i--){const j=Math.floor(r()*(i+1));const t=out[i];out[i]=out[j];out[j]=t}
+ NAMES_CACHE=out;return out;
+}
+let BOTS_CACHE=null;
+function bots(){
+ const key=today()+'|'+S.start;if(BOTS_CACHE&&BOTS_CACHE.key===key)return BOTS_CACHE.list;
+ const names=allNames(),N=names.length,d=Math.max(0,diffDays(S.start,today()));
+ const list=names.map((n,i)=>{
+  const base=Math.floor(15800*Math.pow(i/(N-1),1.75)),rate=(10+hash(n)%50)*(1-.55*i/(N-1));let g=0;
+  for(let k=0;k<d;k++)g+=hash(n+':'+k)%Math.max(2,Math.round(rate*2));
+  const rp=Math.min(19500,base+g),t=rankInfo(rp).t,r=rng(n),eq={};
+  SLOTS.forEach(s=>{const opts=CAT[s[0]].map((it,ix)=>[it,ix]).filter(x=>x[0][2]<=t);const pick=opts[Math.floor(r()*opts.length)][1];eq[s[0]]=(['head','acc','hand','back','pet'].indexOf(s[0])>=0&&r()<.5)?0:pick});
+  return{name:n,rp:rp,eq:eq,bot:true};
+ });
+ BOTS_CACHE={key:key,list:list};return list;
+}
+let lbAll=false;
+function lbRow(x,i){const t=rankInfo(x.rp);return '<div class="lb'+(x.me?' me':'')+'"><div class="pos">'+(i+1)+'</div>'+avatar(x.eq,36)+'<div class="grow"><div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.name)+(x.me?' (you)':'')+'</div><div class="tiny">'+t.label+'</div></div>'+badge(t.t,30)+'<div style="font-weight:700;font-size:13px;min-width:56px;text-align:right">'+x.rp.toLocaleString()+'</div></div>'}
+function vLadder(){
+ const all=bots().concat([{name:S.set.name||'You',rp:S.rp,eq:S.eq,me:true}]).sort((a,b)=>b.rp-a.rp);
+ const me=all.findIndex(x=>x.me),N=all.length,ahead=Math.round((N-1-me)/(N-1)*100);
+ let h='<div class="card"><div class="muted">Your position</div><div class="big">#'+(me+1)+' <span class="muted" style="font-size:15px;font-weight:600">of '+N+'</span></div><div class="tiny" style="margin-top:4px">'+(me===0?'You are #1. Everyone is chasing you.':(all[me-1].rp-S.rp+1)+' RP to pass '+esc(all[me-1].name)+' · ahead of '+ahead+'% of the field')+'</div></div>';
+ h+='<h2>Global ladder</h2><div class="card" style="padding:6px">';
+ if(lbAll||N<=30)h+=all.map(lbRow).join('');
+ else{
+  const show={};for(let i=0;i<10;i++)show[i]=1;for(let i=Math.max(0,me-4);i<=Math.min(N-1,me+4);i++)show[i]=1;
+  let prev=-1;all.forEach((x,i)=>{if(!show[i])return;if(prev>=0&&i-prev>1)h+='<div class="tiny" style="text-align:center;padding:4px">· · ·</div>';h+=lbRow(x,i);prev=i});
+ }
+ h+='</div><button class="ghost full" data-a="lbAll">'+(lbAll?'Show top and nearby only':'Show full ladder ('+N+')')+'</button><div class="tiny" style="margin:10px 4px 0">Rivals gain points every day, so standing still means sliding down.</div>';
+ return h;
+}
+
+/* ============ extra click and input handling ============ */
+function extraClick(a,v,b){
+ const i=+b.dataset.i,j=+b.dataset.s;
+ switch(a){
+  case 'wStart':startWorkout();return true;
+  case 'wRepeat':repeatWorkout(v);return true;
+  case 'wFinish':finishWorkout();return true;
+  case 'wDiscard':if(!discardArm){discardArm=true;render();setTimeout(()=>{discardArm=false;if(tab==='train')render()},4000);return true}discardArm=false;S.wk=null;save();render();toast('Workout discarded');return true;
+  case 'wAddEx':S.wk.pick=true;save();render();return true;
+  case 'wPickClose':S.wk.pick=false;save();render();return true;
+  case 'wPick':addExToWk(v);return true;
+  case 'wNewPick':{const ex=newExercise($('#pxn').value,$('#pxt').value);if(ex)addExToWk(ex.id);return true}
+  case 'wAddSet':{const it=S.wk.items[i],p=it.sets[it.sets.length-1];it.sets.push(blank(it.type,p));save();render();return true}
+  case 'wDelSet':{const it=S.wk.items[i];it.sets.splice(j,1);if(!it.sets.length)S.wk.items.splice(i,1);save();render();return true}
+  case 'wDone':toggleSet(i,j);return true;
+  case 'wRemoveEx':S.wk.items.splice(i,1);save();render();return true;
+  case 'restLen':S.wk.restLen=+v;save();render();return true;
+  case 'restAuto':S.wk.auto=!!b.checked;save();return true;
+  case 'restStart':S.wk.rest={end:Date.now()+S.wk.restLen*1000,total:S.wk.restLen};save();render();return true;
+  case 'restAdd':S.wk.rest.end+=15000;save();render();return true;
+  case 'restSkip':S.wk.rest=null;save();render();return true;
+  case 'sumClose':S.lastSummary=null;save();render();return true;
+  case 'wDelHist':if(delArm!==v){delArm=v;render();setTimeout(()=>{if(delArm===v){delArm=null;if(tab==='train')render()}},3500);return true}delArm=null;S.workouts=S.workouts.filter(w=>w.id!==v);save();render();return true;
+  case 'exNew':{const ex=newExercise($('#nxn').value,$('#nxt').value);if(ex){render();toast('Added '+ex.name)}return true}
+  case 'exDel':S.exercises=S.exercises.filter(e=>e.id!==v);save();render();return true;
+  case 'lbAll':lbAll=!lbAll;render();return true;
+ }
+ return false;
+}
+document.addEventListener('input',e=>{
+ const t=e.target;if(!t||!t.dataset)return;
+ if(t.dataset.wf!==undefined){const it=S.wk&&S.wk.items[+t.dataset.wi];if(it){it.sets[+t.dataset.ws][t.dataset.wf]=t.value;save()}}
+ else if(t.id==='px'){const q=t.value.trim().toLowerCase();document.querySelectorAll('#plist [data-n]').forEach(el=>{el.style.display=el.dataset.n.indexOf(q)>=0?'':'none'})}
+});
+setInterval(()=>{
+ const wk=S.wk;if(!wk)return;
+ const el=$('#wkTimer');if(el)el.textContent=mmss((Date.now()-wk.start)/1000);
+ if(wk.rest){
+  if(Date.now()>=wk.rest.end){wk.rest=null;save();try{if(navigator.vibrate)navigator.vibrate(250)}catch(e){}toast('Rest over. Next set.');if(tab==='train')render()}
+  else{const r=$('#rest');if(r)r.textContent=mmss((wk.rest.end-Date.now())/1000)}
+ }
+},1000);
+
+function workoutSettings(){
+ const r=parseInt(S.set.rest,10)||90;
+ return '<h2>Workouts</h2><div class="card"><div class="muted" style="margin-bottom:6px">Units</div><select id="su" data-c="unit"><option value="lb"'+(S.set.unit==='kg'?'':' selected')+'>Pounds and miles</option><option value="kg"'+(S.set.unit==='kg'?' selected':'')+'>Kilograms and kilometers</option></select><div class="muted" style="margin:12px 0 6px">Default rest between sets</div><select id="sr" data-c="rest">'+[60,90,120,180].map(n=>'<option value="'+n+'"'+(r===n?' selected':'')+'>'+n+' seconds</option>').join('')+'</select></div>';
+}
+
+/* ============ boot ============ */
+rollover();render();
+if(S.notice){toast(S.notice);S.notice=null;save()}
+if(S.focus&&Date.now()>=S.focus.end)finishFocus();
+</script>
+</body>
+</html>

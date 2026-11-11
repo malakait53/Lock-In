@@ -1,0 +1,15 @@
+{
+  "appId": "com.malakai.lockin",
+  "appName": "Lock In",
+  "webDir": "www",
+  "backgroundColor": "#000000",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#000000"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
